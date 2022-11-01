@@ -36,8 +36,8 @@
       本站所有图片均来自必应搜索&nbsp
       您是本站的第<span id="busuanzi_value_site_uv"></span>个小伙伴<br/>
       Copyright © 2022 心流<br/>
-      <a target="_blank" href="https://beian.miit.gov.cn/">桂ICP备2021004373号-1</a>&nbsp&nbsp
-      <a target="_blank" title="51la网站统计" href="https://v6.51.la/land/JnHw7yNkc1XsvRUB">
+      <a target="_blank" href="https://beian.miit.gov.cn/">桂ICP备2021004373号-5</a>&nbsp&nbsp
+      <a target="_blank" title="51la网站统计" href="https://v6.51.la/land/JrXIZWIfkMJbZ6ik">
         <img src="https://sdk.51.la/icon/1-1.png">
       </a>
     </el-footer>

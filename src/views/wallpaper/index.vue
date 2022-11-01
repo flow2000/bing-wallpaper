@@ -24,7 +24,7 @@
   export default {
     data() {
       return {
-        bingApi: "https://api.bing.shinie.top", //api
+        bingApi: "https://api.bimg.cc",          //api 
         picList: [],                             //数据列表
         total: 0,                               //数据总数
         currentPage: 1,                         //当前页数
