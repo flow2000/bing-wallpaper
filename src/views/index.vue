@@ -54,20 +54,12 @@
     name: "index",
     data() {
       return {
-        msg: "欢迎来到必应壁纸",
         activeIndex: "/index",
       };
     },
     mounted() {
-      this.welcome();
     },
     methods: {
-      welcome() {
-          this.$message({
-            message: this.msg,
-            type: "success",
-          });
-      },
       handleSelect(key, keyPath) {
         console.log(key, keyPath);
         if (key === "/") {
