@@ -37,7 +37,7 @@
       您是本站的第<span id="busuanzi_value_site_uv"></span>个小伙伴<br/>
       Copyright © 2022 心流<br/>
       <a target="_blank" href="https://beian.miit.gov.cn/">桂ICP备2021004373号-5</a>&nbsp&nbsp
-      <a target="_blank" title="51la网站统计" href="https://v6.51.la/land/JrXIZWIfkMJbZ6ik">
+      <a target="_blank" title="51la网站统计" href="https://v6.51.la/s/W8n3xjD4r3Vjfl6">
         <img src="https://sdk.51.la/icon/1-1.png">
       </a>
     </el-footer>

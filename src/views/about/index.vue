@@ -80,7 +80,7 @@
     },
     mounted(){
       twikoo.init({
-        envId: 'https://twikoo.bing.shinie.top/',
+        envId: 'https://twikoo.bimg.cc/',
         el: '#tcomment', // 容器元素
       })
     }
