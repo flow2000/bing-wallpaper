@@ -24,7 +24,7 @@
           <span class="menu-font"><i class="iconfont icon-guanyu"></i>关于</span>
         </el-menu-item>
         <el-menu-item index="/blog">
-          <a href="https://blog.panghai.top" target="_blank">
+          <a href="https://blog.aqcoder.cn" target="_blank">
             <span class="menu-font"><i class="iconfont icon-bokeyuan"></i>博客</span>
           </a>
         </el-menu-item>

@@ -10,7 +10,7 @@
 export default {
   data() {
     return {
-      imgUrl: "https://api.panghai.top/php/random.php?cover=true&random=",
+      imgUrl: "https://api.aqcoder.cn/random",
     };
   },
   // name: "wallpaper",

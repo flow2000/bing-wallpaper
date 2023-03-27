@@ -25,7 +25,7 @@
               <div class="post1">
                 <p>前端项目地址：<a href="https://github.com/flow2000/bing-wallpaper" target="_blank"><span>bing-wallpaper</span></a></p>
                 <p>后端项目地址：<a href="https://github.com/flow2000/bing-wallpaper-api" target="_blank"><span>bing-wallpaper-api</span></a></p>
-                <p>后端教程：<a href="https://blog.panghai.top/posts/af9f/" target="_blank">自搭建必应api</a></p>
+                <p>后端教程：<a href="https://blog.aqcoder.cn/posts/af9f/" target="_blank">自搭建必应api</a></p>
               </div>
             </el-card>
           </el-col>
