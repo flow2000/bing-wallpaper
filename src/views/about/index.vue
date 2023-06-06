@@ -15,6 +15,12 @@
               <p>2022/9/5 20:46</p>
             </el-card>
           </el-timeline-item>
+          <el-timeline-item timestamp="2023/6/6" placement="top">
+            <el-card>
+              <h4>修复分页器无法正常显示的bug</h4>
+              <p>2022/6/6 14:04</p>
+            </el-card>
+          </el-timeline-item>
         </el-timeline>
       </div>
 
