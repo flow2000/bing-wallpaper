@@ -1,22 +1,7 @@
 # bing-wallpaper
 
-> bing wallpaper
+一个必应壁纸的展示站点，使用了Vue2框架+element-ui组件库+axios网络库搭建
 
-## Build Setup
+地址：https://www.bimg.cc/
 
-``` bash
-# install dependencies
-npm install
-
-# serve with hot reload at localhost:8080
-npm run dev
-
-# build for production with minification
-npm run build
-
-# build for production and view the bundle analyzer report
-npm run build --report
-```
-
-For a detailed explanation on how things work, check out the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
-
+截图：![www.bimg.cc_](img/www.bimg.cc_.png)
