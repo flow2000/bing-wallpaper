@@ -1123,6 +1123,7 @@ export default {
   .filter-label .el-form-item__label {
     display: block;
     margin-bottom: 8px;
+    font-size: 14px;
   }
   
   .filter-actions {
@@ -1184,6 +1185,11 @@ export default {
     margin-bottom: 12px;
   }
   
+  /* 壁纸图片 */
+  .wallpaper-image {
+    min-height: 200px;
+  }
+  
   /* 分页 */
   .pagination-container {
     margin-top: 24px;
@@ -1201,6 +1207,24 @@ export default {
     display: none;
   }
   
+  .custom-pagination /deep/ .el-pager li {
+    min-width: 32px;
+    height: 32px;
+    line-height: 32px;
+    font-size: 13px;
+  }
+  
+  .custom-pagination /deep/ .el-pagination__prev,
+  .custom-pagination /deep/ .el-pagination__next {
+    min-width: 32px;
+    height: 32px;
+  }
+  
+  .custom-pagination /deep/ .btn-prev,
+  .custom-pagination /deep/ .btn-next {
+    padding: 0 8px;
+  }
+  
   /* 预览对话框 */
   .preview-dialog /deep/ .el-dialog {
     width: 95% !important;
@@ -1212,8 +1236,8 @@ export default {
   }
   
   .preview-image-wrapper {
-    min-height: 300px;
-    max-height: 50vh;
+    min-height: 250px;
+    max-height: 40vh;
   }
   
   .preview-info {
@@ -1221,7 +1245,22 @@ export default {
   }
   
   .preview-title {
-    font-size: 18px;
+    font-size: 16px;
+  }
+  
+  .preview-copyright,
+  .preview-date {
+    font-size: 13px;
+  }
+  
+  .resolution-selector {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .resolution-selector .el-select {
+    width: 100%;
   }
   
   .preview-actions {
@@ -1246,6 +1285,14 @@ export default {
   .wallpaper-copyright {
     font-size: 11px;
     margin-bottom: 8px;
+  }
+  
+  .wallpaper-meta {
+    font-size: 12px;
+  }
+  
+  .overlay-actions {
+    gap: 8px;
   }
   
   .overlay-actions .el-button {
@@ -1300,6 +1347,29 @@ export default {
     height: 28px;
   }
   
+  .custom-pagination /deep/ .el-pagination__total {
+    font-size: 12px;
+  }
+  
+  .custom-pagination /deep/ .el-pager li {
+    margin: 0 2px;
+  }
+  
+  /* 预览对话框 */
+  .preview-dialog /deep/ .el-dialog__header {
+    padding: 12px;
+  }
+  
+  .preview-dialog /deep/ .el-dialog__title {
+    font-size: 16px;
+  }
+  
+  .preview-dialog /deep/ .el-dialog__close {
+    width: 30px;
+    height: 30px;
+    font-size: 18px;
+  }
+  
   /* 空状态 */
   .empty-state {
     padding: 40px 20px;
@@ -1307,6 +1377,38 @@ export default {
   
   .empty-state /deep/ .el-empty__description {
     font-size: 14px;
+  }
+}
+
+@media screen and (max-width: 375px) {
+  .pagination-container {
+    margin-top: 16px;
+  }
+  
+  .custom-pagination {
+    padding: 8px 10px;
+  }
+  
+  .custom-pagination /deep/ .el-pager li {
+    min-width: 26px;
+    height: 26px;
+    line-height: 26px;
+    font-size: 11px;
+  }
+  
+  .custom-pagination /deep/ .el-pagination__prev,
+  .custom-pagination /deep/ .el-pagination__next {
+    min-width: 26px;
+    height: 26px;
+  }
+  
+  .custom-pagination /deep/ .btn-prev,
+  .custom-pagination /deep/ .btn-next {
+    padding: 0 6px;
+  }
+  
+  .custom-pagination /deep/ .el-pagination__total {
+    font-size: 11px;
   }
 }
 
