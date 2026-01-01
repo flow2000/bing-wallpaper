@@ -5,20 +5,26 @@
         <el-timeline>
           <el-timeline-item timestamp="2022/10/6" placement="top">
             <el-card>
-              <h4>完善各个页面</h4>
-              <p>2022/10/06 22:09</p>
+              <h3>完善各个页面</h3>
             </el-card>
           </el-timeline-item>
           <el-timeline-item timestamp="2022/9/5" placement="top">
             <el-card>
-              <h4>第一个版本，完成基本布局</h4>
-              <p>2022/9/5 20:46</p>
+              <h3>第一个版本，完成基本布局</h3>
             </el-card>
           </el-timeline-item>
           <el-timeline-item timestamp="2023/6/6" placement="top">
             <el-card>
-              <h4>修复分页器无法正常显示的bug</h4>
-              <p>2022/6/6 14:04</p>
+              <h3>修复分页器无法正常显示的bug</h3>
+            </el-card>
+          </el-timeline-item>
+          <el-timeline-item timestamp="2026/1/1" placement="top">
+            <el-card>
+              <h3>全新改版</h3>
+              <h4>1、完善列表样式布局，使其更美观，操作更简单</h4>
+              <h4>2、修复分页器的bug（不再依靠bug运行啦！！！）</h4>
+              <h4>3、支持多维度筛选壁纸，如：地区、分辨率、年份等</h4>
+              <h4>4、支持一键下载筛选年份的所有壁纸并打包</h4>
             </el-card>
           </el-timeline-item>
         </el-timeline>
@@ -64,6 +70,10 @@
                   前端<a href="https://element.eleme.cn/#/zh-CN" target="_blank">ElementUI</a>
                   翻了N遍，bug还出现了一堆，vue-router学着官网的的例子才懂，分页器还有一个bug没解决，
                   PS：这个bug还不能去掉，项目依靠这个bug运行。
+                </p>
+                <el-divider></el-divider>
+                <p>
+                  <strong>AI</strong>真是太好用了！！！
                 </p>
                 <el-divider></el-divider>
                 <p>
