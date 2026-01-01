@@ -33,8 +33,8 @@
             <el-option
               v-for="res in resolutions"
               :key="res"
-              :label="res === '4K' ? '4K' : res"
-              :value="res"
+              :label="res"
+              :value="res === '4K' ? 'UHD' : res"
             >
             </el-option>
           </el-select>
@@ -120,7 +120,7 @@
           :sm="6" 
           :md="6" 
           :lg="6"
-          :xl="4"
+          :xl="6"
           class="wallpaper-col"
         >
           <el-card 
@@ -208,7 +208,7 @@
       :close-on-click-modal="true"
     >
       <div class="preview-container" v-if="previewWallpaperData">
-        <div class="preview-image-wrapper">
+        <div class="preview-image-wrapper" :data-resolution="previewResolution">
           <el-image 
             :src="previewWallpaperData.url" 
             :alt="previewWallpaperData.title"
@@ -233,16 +233,16 @@
           <div class="resolution-selector">
             <span class="label">选择分辨率：</span>
             <el-select 
-              v-model="selectedResolution" 
+              v-model="previewResolution" 
               placeholder="选择分辨率"
               size="small"
-              @change="handleResolutionChange"
+              @change="handlePreviewResolutionChange"
             >
               <el-option
                 v-for="res in resolutions"
                 :key="res"
-                :label="res === '4K' ? '4K' : res"
-                :value="res"
+                :label="res"
+                :value="res === '4K' ? 'UHD' : res"
               >
               </el-option>
             </el-select>
@@ -331,6 +331,8 @@ export default {
       previewDialogVisible: false,
       previewWallpaperData: null,
       selectedResolution: '1920x1080',
+      previewResolution: '1920x1080',
+      previewOriginalUrl: '',
       
       // 已知地区配置
       regionOptions: [
@@ -531,7 +533,8 @@ export default {
     // 预览壁纸
     previewWallpaper(wallpaper) {
       this.previewWallpaperData = wallpaper;
-      this.selectedResolution = this.extractResolution(wallpaper.url) || '1920x1080';
+      this.previewOriginalUrl = wallpaper.url;
+      this.previewResolution = this.extractResolution(wallpaper.url) || '1920x1080';
       this.previewDialogVisible = true;
     },
     
@@ -539,23 +542,14 @@ export default {
     extractResolution(url) {
       const match = url.match(/(\d+)x(\d+)/);
       if (match) {
-        return `${match[1]}x${match[2]}`;
+        const resolution = `${match[1]}x${match[2]}`;
+        return resolution === 'UHD' ? '4K' : resolution;
       }
       return null;
     },
     
-    // 处理分辨率变化
+    // 处理筛选分辨率变化
     handleResolutionChange(resolution) {
-      if (this.previewWallpaperData) {
-        let newUrl;
-        if (resolution === 'UHD') {
-          newUrl = this.previewWallpaperData.url.replace(/_\d+x\d+/, '_UHD');
-        } else {
-          newUrl = this.previewWallpaperData.url.replace(/_\d+x\d+/, `_${resolution}`);
-        }
-        this.previewWallpaperData.url = newUrl;
-      }
-      
       // 更新图片尺寸配置
       if (resolution === 'UHD') {
         this.uhd = true;
@@ -571,6 +565,19 @@ export default {
       }
       // 重新获取壁纸数据
       this.fetchWallpapers();
+    },
+    
+    // 处理预览分辨率变化
+    handlePreviewResolutionChange(resolution) {
+      if (this.previewWallpaperData && this.previewOriginalUrl) {
+        let newUrl;
+        if (resolution === 'UHD') {
+          newUrl = this.previewOriginalUrl.replace(/_\d+x\d+/, '_UHD');
+        } else {
+          newUrl = this.previewOriginalUrl.replace(/_\d+x\d+/, `_${resolution}`);
+        }
+        this.previewWallpaperData.url = newUrl;
+      }
     },
     
     // 下载壁纸
@@ -1030,13 +1037,46 @@ export default {
   justify-content: center;
   align-items: center;
   min-height: 400px;
-  max-height: 60vh;
+  max-height: 80vh;
   overflow: hidden;
+  position: relative;
 }
 
 .preview-image {
   max-width: 100%;
-  max-height: 60vh;
+  max-height: 80vh;
+  object-fit: contain;
+}
+
+/* 4K 分辨率适配 */
+.preview-image-wrapper[data-resolution="UHD"] {
+  max-height: 85vh;
+}
+
+.preview-image-wrapper[data-resolution="UHD"] .preview-image {
+  max-height: 85vh;
+}
+
+/* 超宽分辨率适配 */
+.preview-image-wrapper[data-resolution="1920x1200"] {
+  max-height: 75vh;
+}
+
+.preview-image-wrapper[data-resolution="1920x1200"] .preview-image {
+  max-height: 75vh;
+}
+
+/* 竖屏分辨率适配 */
+.preview-image-wrapper[data-resolution="1080x1920"],
+.preview-image-wrapper[data-resolution="768x1280"],
+.preview-image-wrapper[data-resolution="720x1280"] {
+  max-height: 90vh;
+}
+
+.preview-image-wrapper[data-resolution="1080x1920"] .preview-image,
+.preview-image-wrapper[data-resolution="768x1280"] .preview-image,
+.preview-image-wrapper[data-resolution="720x1280"] .preview-image {
+  max-height: 90vh;
 }
 
 .preview-info {
@@ -1123,7 +1163,6 @@ export default {
   .filter-label .el-form-item__label {
     display: block;
     margin-bottom: 8px;
-    font-size: 14px;
   }
   
   .filter-actions {
@@ -1185,11 +1224,6 @@ export default {
     margin-bottom: 12px;
   }
   
-  /* 壁纸图片 */
-  .wallpaper-image {
-    min-height: 200px;
-  }
-  
   /* 分页 */
   .pagination-container {
     margin-top: 24px;
@@ -1236,8 +1270,20 @@ export default {
   }
   
   .preview-image-wrapper {
-    min-height: 250px;
-    max-height: 40vh;
+    min-height: 300px;
+    max-height: 50vh;
+  }
+  
+  .preview-image-wrapper[data-resolution="UHD"] {
+    max-height: 60vh;
+  }
+  
+  .preview-image-wrapper[data-resolution="1920x1200"] {
+    max-height: 55vh;
+  }
+  
+  .preview-image-wrapper[data-resolution="1080x1920"] {
+    max-height: 65vh;
   }
   
   .preview-info {
@@ -1245,22 +1291,7 @@ export default {
   }
   
   .preview-title {
-    font-size: 16px;
-  }
-  
-  .preview-copyright,
-  .preview-date {
-    font-size: 13px;
-  }
-  
-  .resolution-selector {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-  
-  .resolution-selector .el-select {
-    width: 100%;
+    font-size: 18px;
   }
   
   .preview-actions {
@@ -1285,14 +1316,6 @@ export default {
   .wallpaper-copyright {
     font-size: 11px;
     margin-bottom: 8px;
-  }
-  
-  .wallpaper-meta {
-    font-size: 12px;
-  }
-  
-  .overlay-actions {
-    gap: 8px;
   }
   
   .overlay-actions .el-button {
@@ -1353,21 +1376,6 @@ export default {
   
   .custom-pagination /deep/ .el-pager li {
     margin: 0 2px;
-  }
-  
-  /* 预览对话框 */
-  .preview-dialog /deep/ .el-dialog__header {
-    padding: 12px;
-  }
-  
-  .preview-dialog /deep/ .el-dialog__title {
-    font-size: 16px;
-  }
-  
-  .preview-dialog /deep/ .el-dialog__close {
-    width: 30px;
-    height: 30px;
-    font-size: 18px;
   }
   
   /* 空状态 */

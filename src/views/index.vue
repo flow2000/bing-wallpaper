@@ -123,13 +123,13 @@ export default {
   methods: {
     handleSelect(key, keyPath) {
       console.log('导航选择:', key, keyPath);
-      if (key === '/') {
-        this.$router.push('/');
+      if (key !== this.$route.path) {
+        this.$router.push(key);
       }
     },
     
     handleMobileMenuCommand(command) {
-      if (command) {
+      if (command && command !== this.$route.path) {
         this.$router.push(command);
       }
     },
