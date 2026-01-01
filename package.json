@@ -1,6 +1,6 @@
 {
   "name": "bing-wallpaper",
-  "version": "1.0.0",
+  "version": "3.0.0",
   "description": "bing wallpaper",
   "author": "心流",
   "private": true,
@@ -12,6 +12,8 @@
   "dependencies": {
     "axios": "^0.25.0",
     "element-ui": "^2.3.6",
+    "file-saver": "^2.0.5",
+    "jszip": "^3.10.1",
     "vue": "^2.5.2",
     "vue-router": "^3.0.1"
   },
