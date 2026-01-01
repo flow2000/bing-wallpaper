@@ -10,12 +10,13 @@
           </a>
         </div>
         
+        <!-- 桌面端菜单 -->
         <el-menu 
           :default-active="activeIndex" 
           mode="horizontal" 
           @select="handleSelect" 
           router
-          class="nav-menu"
+          class="nav-menu desktop-menu"
         >
           <el-menu-item index="/">
             <i class="iconfont icon-home"></i>
@@ -34,6 +35,29 @@
             </a>
           </el-menu-item>
         </el-menu>
+        
+        <!-- 移动端菜单按钮 -->
+        <el-dropdown trigger="click" class="mobile-menu-dropdown" @command="handleMobileMenuCommand">
+          <span class="el-dropdown-link">
+            <i class="el-icon-menu"></i>
+          </span>
+          <el-dropdown-menu slot="dropdown">
+            <el-dropdown-item command="/">
+              <i class="iconfont icon-home"></i>
+              首页
+            </el-dropdown-item>
+            <el-dropdown-item command="/about">
+              <i class="iconfont icon-guanyu"></i>
+              关于
+            </el-dropdown-item>
+            <el-dropdown-item>
+              <a href="https://blog.aqcoder.cn" target="_blank" class="external-link">
+                <i class="iconfont icon-bokeyuan"></i>
+                博客
+              </a>
+            </el-dropdown-item>
+          </el-dropdown-menu>
+        </el-dropdown>
       </div>
     </el-header>
     
@@ -53,11 +77,6 @@
         <span class="footer-item">
           <i class="el-icon-user"></i>
           <span>您是本站第 <span id="busuanzi_value_site_uv" class="highlight">{{ visitorCount }}</span> 个小伙伴</span>
-        </span>
-        <span class="divider">|</span>
-        <span class="footer-item">
-          <i class="el-icon-date"></i>
-          <span>本站运行中</span>
         </span>
         <span class="divider">|</span>
         <span class="footer-item">
@@ -106,6 +125,12 @@ export default {
       console.log('导航选择:', key, keyPath);
       if (key === '/') {
         this.$router.push('/');
+      }
+    },
+    
+    handleMobileMenuCommand(command) {
+      if (command) {
+        this.$router.push(command);
       }
     },
     
@@ -254,6 +279,39 @@ html, body {
   text-decoration: none;
 }
 
+/* 移动端菜单样式 */
+.mobile-menu-dropdown {
+  display: none;
+}
+
+.el-dropdown-link {
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 8px;
+  transition: transform 0.3s ease;
+}
+
+.el-dropdown-link:hover {
+  transform: scale(1.1);
+}
+
+.el-dropdown-menu {
+  min-width: 150px;
+}
+
+.el-dropdown-menu .el-dropdown-menu__item {
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.el-dropdown-menu .el-dropdown-menu__item i {
+  font-size: 16px;
+  color: #667eea;
+}
+
 /* 主内容区域 */
 .main-content {
   flex: 1;
@@ -337,21 +395,12 @@ html, body {
     font-size: 16px;
   }
   
-  .nav-menu {
-    flex: 1;
-    justify-content: flex-end;
+  .desktop-menu {
+    display: none;
   }
   
-  .nav-menu .el-menu-item {
-    padding: 0 8px !important;
-  }
-  
-  .nav-menu .el-menu-item span {
-    font-size: 13px;
-  }
-  
-  .nav-menu .el-menu-item i {
-    font-size: 18px;
+  .mobile-menu-dropdown {
+    display: block;
   }
   
   .main-content {
@@ -389,7 +438,8 @@ html, body {
   }
   
   .logo-text {
-    display: none;
+    display: block;
+    font-size: 14px;
   }
   
   .logo-link .icon-Bing {
@@ -397,24 +447,9 @@ html, body {
     display: block;
   }
   
-  .nav-menu {
-    gap: 4px;
-    flex: 1;
-    min-width: 0;
-  }
-  
-  .nav-menu .el-menu-item {
-    padding: 0 6px !important;
-    min-width: auto;
-  }
-  
-  .nav-menu .el-menu-item span {
-    display: none;
-  }
-  
-  .nav-menu .el-menu-item i {
+  .el-dropdown-link {
     font-size: 20px;
-    display: block;
+    padding: 6px;
   }
   
   .footer-content {
@@ -443,16 +478,9 @@ html, body {
     font-size: 24px;
   }
   
-  .nav-menu {
-    gap: 2px;
-  }
-  
-  .nav-menu .el-menu-item {
-    padding: 0 4px !important;
-  }
-  
-  .nav-menu .el-menu-item i {
+  .el-dropdown-link {
     font-size: 18px;
+    padding: 4px;
   }
   
   .footer {
@@ -465,6 +493,76 @@ html, body {
   
   .footer-item {
     font-size: 11px;
+  }
+}
+
+/* 移动端下拉菜单优化 */
+.el-dropdown-menu {
+  border: none;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  border-radius: 12px;
+  padding: 8px 0;
+}
+
+.el-dropdown-menu__item {
+  font-size: 14px;
+  color: #606266;
+  transition: all 0.3s ease;
+}
+
+.el-dropdown-menu__item:hover {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+}
+
+.el-dropdown-menu__item i {
+  margin-right: 8px;
+}
+
+.el-dropdown-menu__item a {
+  color: inherit;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 移动端优化 */
+@media screen and (max-width: 768px) {
+  .header {
+    height: 56px !important;
+  }
+  
+  .header-content {
+    height: 56px;
+  }
+  
+  .logo-link {
+    font-size: 18px;
+  }
+  
+  .logo-link .icon-Bing {
+    font-size: 28px;
+  }
+  
+  .el-dropdown-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.15);
+    transition: all 0.3s ease;
+  }
+  
+  .el-dropdown-link:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.05);
+  }
+  
+  .el-dropdown-link:active {
+    transform: scale(0.95);
   }
 }
 
