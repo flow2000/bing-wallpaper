@@ -66,6 +66,15 @@
           当前筛选：{{ getFilterStatusText() }}
         </el-tag>
         <span class="result-count">共 <strong>{{ filteredWallpapers.length }}</strong> 张壁纸</span>
+        
+        <!-- 网盘下载提示 -->
+        <div class="netdisk-tip">
+          使用
+          <a href="https://pan.quark.cn/s/fcee3d820ae9" target="_blank" class="netdisk-link">夸克网盘</a>
+          <a href="https://www.alipan.com/s/VF4HskqwXMk" target="_blank" class="netdisk-link">阿里网盘</a>
+          下载高清壁纸
+        </div>
+        
         <el-tooltip 
           :content="filterForm.year ? '选择年份后批量下载可直接下载整个年份' : ''" 
           placement="top"
@@ -687,26 +696,60 @@ export default {
         let loadedCount = 0;
         const totalCount = this.filteredWallpapers.length;
         
-        const downloadPromises = this.filteredWallpapers.map(async (wallpaper, index) => {
-          try {
-            const response = await fetch(wallpaper.url);
-            const blob = await response.blob();
-            
-            // 格式化日期
-            const date = wallpaper.datetime ? wallpaper.datetime.slice(0, 10) : new Date().toISOString().slice(0, 10);
-            
-            // 使用API的title作为文件名
-            const filename = `${wallpaper.title}_${date}.jpg`;
-            folder.file(filename, blob);
-            
-            loadedCount++;
-            this.downloadProgress = Math.round((loadedCount / totalCount) * 100);
-          } catch (error) {
-            console.error(`下载壁纸 ${wallpaper.id} 失败:`, error);
-          }
-        });
+        const concurrency = 3;
+        const chunks = [];
+        for (let i = 0; i < totalCount; i += concurrency) {
+          chunks.push(this.filteredWallpapers.slice(i, i + concurrency));
+        }
         
-        await Promise.all(downloadPromises);
+        for (const chunk of chunks) {
+          const downloadPromises = chunk.map(async (wallpaper) => {
+            try {
+              const response = await fetch(wallpaper.url, {
+                headers: {
+                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                  'Accept': 'image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+                  'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+                  'Accept-Encoding': 'gzip, deflate, br',
+                  'Cache-Control': 'no-cache',
+                  'Referer': 'https://www.bing.com',
+                  'DNT': '1',
+                  'Connection': 'keep-alive',
+                  'Upgrade-Insecure-Requests': '1'
+                }
+              });
+              
+              if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+              }
+              
+              const reader = response.body.getReader();
+              const chunks = [];
+              let receivedLength = 0;
+              
+              while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                
+                chunks.push(value);
+                receivedLength += value.length;
+              }
+              
+              const blob = new Blob(chunks);
+              
+              const date = wallpaper.datetime ? wallpaper.datetime.slice(0, 10) : new Date().toISOString().slice(0, 10);
+              const filename = `${wallpaper.title}_${date}.jpg`;
+              folder.file(filename, blob);
+              
+              loadedCount++;
+              this.downloadProgress = Math.round((loadedCount / totalCount) * 100);
+            } catch (error) {
+              console.error(`下载壁纸 ${wallpaper.id} 失败:`, error);
+            }
+          });
+          
+          await Promise.all(downloadPromises);
+        }
         
         this.downloadStatus = '正在打包...';
         const content = await zip.generateAsync({ type: 'blob' });
@@ -822,6 +865,30 @@ export default {
 
 .batch-download-btn {
   margin-left: auto;
+}
+
+.netdisk-tip {
+  font-size: 13px;
+  color: #409eff;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: 16px;
+}
+
+.netdisk-link {
+  color: #409eff;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.netdisk-link:hover {
+  background: rgba(64, 158, 255, 0.1);
+  transform: translateY(-1px);
 }
 
 .download-progress-wrapper {
@@ -1200,6 +1267,12 @@ export default {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
+  }
+  
+  .netdisk-tip {
+    width: 100%;
+    justify-content: center;
+    font-size: 12px;
   }
   
   .batch-download-btn {
