@@ -1,3 +1,5 @@
+
+
 # 必应壁纸（Bing Wallpaper）
 
 一个精美的必应壁纸展示站点，提供丰富的壁纸浏览、筛选和下载功能。
@@ -104,6 +106,12 @@ GET https://api.bimg.cc/all
 | copyrightlink | string | 版权链接 |
 | hsh | string | 图片哈希值 |
 | created_time | string | 创建时间 |
+
+### 获取壁纸详情
+
+```http
+GET https://api.bimg.cc/detail?id={id}
+```
 
 ## 已知分辨率
 
