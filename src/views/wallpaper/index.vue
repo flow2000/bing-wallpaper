@@ -138,12 +138,13 @@
             shadow="hover"
           >
             <!-- 壁纸图片容器 -->
-            <div class="wallpaper-wrapper" @click="previewWallpaper(wallpaper)">
-              <el-image 
-                :src="wallpaper.url" 
+            <div class="wallpaper-wrapper" @click="previewWallpaper(wallpaper)" @mouseenter="handleCardHover(wallpaper)">
+              <el-image
+                :src="getImageSrc(wallpaper)"
                 :alt="wallpaper.title"
                 fit="cover"
                 class="wallpaper-image"
+                :class="{ 'is-hd': !!hdLoadedMap[wallpaper.id] }"
                 lazy
                 @load="handleImageLoad"
                 @error="handleImageError"
@@ -311,6 +312,9 @@ export default {
       
       // 壁纸数据
       allWallpapers: [],
+
+      // 已加载高清图的壁纸 id -> true
+      hdLoadedMap: {},
       
       // 筛选表单
       filterForm: {
@@ -402,9 +406,46 @@ export default {
   },
   
   methods: {
+    // 生成预览图（缩略图）URL：将 url 中的分辨率段替换为 400x240
+    getPreviewUrl(wallpaper) {
+      if (!wallpaper || !wallpaper.url) return '';
+      // 兼容 _1920x1080 与 _UHD 两种分辨率标记
+      return wallpaper.url.replace(/_\d+x\d+|_UHD/, '_400x240');
+    },
+
+    // 生成高清图 URL：固定使用 1920x1080
+    getHdUrl(wallpaper) {
+      if (!wallpaper || !wallpaper.url) return '';
+      return wallpaper.url.replace(/_\d+x\d+|_UHD/, '_1920x1080');
+    },
+
+    // 根据高清图是否已加载，返回对应的图片 src
+    getImageSrc(wallpaper) {
+      if (!wallpaper) return '';
+      return this.hdLoadedMap[wallpaper.id] ? this.getHdUrl(wallpaper) : this.getPreviewUrl(wallpaper);
+    },
+
+    // 鼠标移入卡片：后台预加载高清图，加载完成后切换显示
+    handleCardHover(wallpaper) {
+      if (!wallpaper || !wallpaper.url) return;
+      if (this.hdLoadedMap[wallpaper.id]) return;
+
+      const hdUrl = this.getHdUrl(wallpaper);
+      const img = new Image();
+      img.onload = () => {
+        this.$set(this.hdLoadedMap, wallpaper.id, true);
+      };
+      img.onerror = () => {
+        // 高清图加载失败时静默保留预览图
+        console.error('高清图加载失败:', hdUrl);
+      };
+      img.src = hdUrl;
+    },
+
     // 获取壁纸数据
     async fetchWallpapers() {
       this.loading = true;
+      this.hdLoadedMap = {};
       
       try {
         // 构建API参数
