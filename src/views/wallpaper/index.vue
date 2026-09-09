@@ -138,14 +138,18 @@
             shadow="hover"
           >
             <!-- 壁纸图片容器 -->
-            <div class="wallpaper-wrapper" @click="previewWallpaper(wallpaper)" @mouseenter="handleCardHover(wallpaper)">
+            <div 
+              class="wallpaper-wrapper" 
+              :data-wallpaper-id="wallpaper.id"
+              @click="previewWallpaper(wallpaper)" 
+              @mouseenter="handleCardHover(wallpaper)"
+            >
               <el-image
                 :src="getImageSrc(wallpaper)"
                 :alt="wallpaper.title"
                 fit="cover"
                 class="wallpaper-image"
-                :class="{ 'is-hd': !!hdLoadedMap[wallpaper.id] }"
-                lazy
+                :class="{ 'is-hd': !!hdLoadedMap[wallpaper.id], 'is-loading': !previewLoadedMap[wallpaper.id] }"
                 @load="handleImageLoad"
                 @error="handleImageError"
               >
@@ -153,6 +157,11 @@
                   <i class="el-icon-picture-outline"></i>
                 </div>
               </el-image>
+              
+              <!-- 加载中遮罩 -->
+              <div v-if="!previewLoadedMap[wallpaper.id]" class="image-loading-overlay">
+                <i class="el-icon-loading"></i>
+              </div>
               
               <!-- 悬浮提示层 -->
               <div class="wallpaper-overlay">
@@ -316,6 +325,16 @@ export default {
       // 已加载高清图的壁纸 id -> true
       hdLoadedMap: {},
       
+      // 预览图(400x240)懒加载节流队列相关
+      previewLoadedMap: {},       // 已加载预览图的壁纸 id -> true
+      previewLoadQueue: [],       // 待加载预览图的壁纸 id 队列
+      isProcessingQueue: false,   // 队列是否正在处理
+      currentLoadingCount: 0,     // 当前正在加载的数量
+      previewLoadDelay: 400,      // 每张预览图加载间隔(ms)，避免频繁请求导致403
+      maxConcurrentPreview: 2,    // 预览图最大并发加载数
+      observer: null,             // IntersectionObserver 实例
+      hoverDebounceTimer: null,   // hover 高清图加载防抖定时器
+      
       // 筛选表单
       filterForm: {
         region: 'zh-CN',
@@ -405,6 +424,16 @@ export default {
     this.fetchWallpapers();
   },
   
+  beforeDestroy() {
+    if (this.observer) {
+      this.observer.disconnect();
+      this.observer = null;
+    }
+    if (this.hoverDebounceTimer) {
+      clearTimeout(this.hoverDebounceTimer);
+    }
+  },
+  
   methods: {
     // 生成预览图（缩略图）URL：将 url 中的分辨率段替换为 400x240
     getPreviewUrl(wallpaper) {
@@ -419,27 +448,120 @@ export default {
       return wallpaper.url.replace(/_\d+x\d+|_UHD/, '_1920x1080');
     },
 
-    // 根据高清图是否已加载，返回对应的图片 src
+    // 根据加载状态返回对应的图片 src
+    // 预览图需要通过队列节流加载，未加载完成前返回占位透明图
     getImageSrc(wallpaper) {
       if (!wallpaper) return '';
-      return this.hdLoadedMap[wallpaper.id] ? this.getHdUrl(wallpaper) : this.getPreviewUrl(wallpaper);
+      if (this.hdLoadedMap[wallpaper.id]) return this.getHdUrl(wallpaper);
+      if (this.previewLoadedMap[wallpaper.id]) return this.getPreviewUrl(wallpaper);
+      // 占位透明图，等待队列加载完成后再替换为真实预览图
+      return 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
     },
 
-    // 鼠标移入卡片：后台预加载高清图，加载完成后切换显示
+    // 鼠标移入卡片：后台预加载高清图，加载完成后切换显示（防抖避免频繁请求）
     handleCardHover(wallpaper) {
       if (!wallpaper || !wallpaper.url) return;
       if (this.hdLoadedMap[wallpaper.id]) return;
 
-      const hdUrl = this.getHdUrl(wallpaper);
-      const img = new Image();
-      img.onload = () => {
-        this.$set(this.hdLoadedMap, wallpaper.id, true);
+      // 防抖：快速划过时不触发高清图加载，减少并发请求
+      if (this.hoverDebounceTimer) {
+        clearTimeout(this.hoverDebounceTimer);
+      }
+      this.hoverDebounceTimer = setTimeout(() => {
+        const hdUrl = this.getHdUrl(wallpaper);
+        const img = new Image();
+        img.onload = () => {
+          this.$set(this.hdLoadedMap, wallpaper.id, true);
+        };
+        img.onerror = () => {
+          // 高清图加载失败时静默保留预览图
+          console.error('高清图加载失败:', hdUrl);
+        };
+        img.src = hdUrl;
+      }, 300);
+    },
+
+    // 初始化懒加载观察器：检测进入视口的图片并加入加载队列
+    setupLazyObserver() {
+      if (this.observer) {
+        this.observer.disconnect();
+      }
+
+      this.observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const id = entry.target.dataset.wallpaperId;
+            if (id && !this.previewLoadedMap[id] && !this.previewLoadQueue.includes(id)) {
+              this.previewLoadQueue.push(id);
+              this.processPreviewQueue();
+            }
+          }
+        });
+      }, { rootMargin: '200px 0px' }); // 提前200px开始加载
+
+      this.$nextTick(() => {
+        const wrappers = this.$el.querySelectorAll('[data-wallpaper-id]');
+        wrappers.forEach(el => this.observer.observe(el));
+      });
+    },
+
+    // 处理预览图加载队列：控制并发数和加载间隔，避免频繁请求导致403
+    processPreviewQueue() {
+      const loadNext = () => {
+        if (this.previewLoadQueue.length === 0) {
+          this.isProcessingQueue = false;
+          return;
+        }
+
+        if (this.currentLoadingCount >= this.maxConcurrentPreview) {
+          return;
+        }
+
+        const id = this.previewLoadQueue.shift();
+        if (this.previewLoadedMap[id]) {
+          loadNext();
+          return;
+        }
+
+        const wallpaper = this.allWallpapers.find(w => String(w.id) === String(id));
+        if (!wallpaper) {
+          loadNext();
+          return;
+        }
+
+        this.currentLoadingCount++;
+        const img = new Image();
+        img.onload = () => {
+          this.$set(this.previewLoadedMap, id, true);
+          this.currentLoadingCount--;
+          // 加载完成后延迟一段时间再加载下一张，降低请求频率
+          setTimeout(loadNext, this.previewLoadDelay);
+        };
+        img.onerror = () => {
+          this.currentLoadingCount--;
+          // 加载失败也标记已处理，避免重复尝试
+          this.$set(this.previewLoadedMap, id, true);
+          setTimeout(loadNext, this.previewLoadDelay);
+        };
+        img.src = this.getPreviewUrl(wallpaper);
       };
-      img.onerror = () => {
-        // 高清图加载失败时静默保留预览图
-        console.error('高清图加载失败:', hdUrl);
-      };
-      img.src = hdUrl;
+
+      if (!this.isProcessingQueue) {
+        this.isProcessingQueue = true;
+        loadNext();
+      } else {
+        // 已有加载在进行中，尝试占用空闲并发槽位
+        loadNext();
+      }
+    },
+
+    // 重置预览图加载状态并启动懒加载（获取接口数据后调用）
+    resetPreviewLoading() {
+      this.previewLoadedMap = {};
+      this.previewLoadQueue = [];
+      this.isProcessingQueue = false;
+      this.currentLoadingCount = 0;
+      this.setupLazyObserver();
     },
 
     // 获取壁纸数据
@@ -487,6 +609,8 @@ export default {
             this.allWallpapers = data;
             this.total = response.data.total || 0;
           }
+          // 重置预览图加载状态并启动节流懒加载
+          this.resetPreviewLoading();
         } else {
           this.$message.error('获取壁纸数据失败：' + ((response.data && response.data.msg) || '未知错误'));
         }
@@ -1022,6 +1146,23 @@ export default {
   background: #f5f7fa;
   color: #909399;
   font-size: 48px;
+}
+
+/* 图片加载中遮罩 */
+.image-loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f5f7fa;
+  color: #c0c4cc;
+  font-size: 32px;
+  z-index: 1;
+  pointer-events: none;
 }
 
 /* 悬浮提示层 */
