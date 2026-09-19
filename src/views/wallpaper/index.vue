@@ -76,7 +76,7 @@
         <el-tag type="info" closable @close="clearFilters">
           当前筛选：{{ getFilterStatusText() }}
         </el-tag>
-        <span class="result-count">共 <strong>{{ filteredWallpapers.length }}</strong> 张壁纸</span>
+        <span class="result-count">共 <strong>{{ total }}</strong> 张壁纸</span>
         
         <!-- 网盘下载提示 -->
         <div class="netdisk-tip">
@@ -123,8 +123,8 @@
     <!-- 壁纸列表 -->
     <div v-loading="loading" class="wallpaper-grid-container">
       <!-- 空状态 -->
-      <el-empty 
-        v-if="!loading && filteredWallpapers.length === 0" 
+      <el-empty
+        v-if="!loading && allWallpapers.length === 0"
         description="没有找到符合条件的壁纸"
         class="empty-state"
       >
@@ -134,7 +134,7 @@
       <!-- 壁纸网格 -->
       <el-row :gutter="20" v-else>
         <el-col 
-          v-for="wallpaper in paginatedWallpapers" 
+          v-for="wallpaper in allWallpapers"
           :key="wallpaper.id"
           :xs="24" 
           :sm="6" 
@@ -150,9 +150,10 @@
           >
             <!-- 壁纸图片容器 -->
             <router-link
-              :to="`/wallpaper/detail/${wallpaper.id}?region=${filterForm.region}`"
+              :to="`/wallpaper/detail/${filterForm.region}-${wallpaper.id}.html`"
               class="wallpaper-wrapper"
               :data-wallpaper-id="wallpaper.id"
+              target="_blank"
               @mouseenter.native="handleCardHover(wallpaper)"
             >
               <el-image
@@ -186,21 +187,13 @@
                     </span>
                   </div>
                   <div class="overlay-actions">
-                    <el-button 
-                      type="primary" 
-                      size="mini" 
+                    <el-button
+                      type="primary"
+                      size="mini"
                       icon="el-icon-view"
                       @click.native.stop="previewWallpaper(wallpaper)"
                     >
                       预览
-                    </el-button>
-                    <el-button 
-                      type="success" 
-                      size="mini" 
-                      icon="el-icon-download"
-                      @click.native.stop="downloadWallpaper(wallpaper)"
-                    >
-                      下载
                     </el-button>
                   </div>
                 </div>
@@ -211,7 +204,7 @@
       </el-row>
       
       <!-- 分页 -->
-      <div class="pagination-container" v-if="filteredWallpapers.length > 0">
+      <div class="pagination-container" v-if="allWallpapers.length > 0">
         <el-pagination
           background
           @current-change="handlePageChange"
@@ -331,32 +324,45 @@ export default {
   computed: {
     // 是否正在筛选
     isFiltering() {
-      return this.filterForm.region !== '' || 
+      return this.filterForm.region !== '' ||
              this.filterForm.year !== '';
-    },
-    
-    // 筛选后的壁纸列表
-    filteredWallpapers() {
-      return [...this.allWallpapers];
-    },
-    
-    // 分页后的壁纸列表
-    paginatedWallpapers() {
-      return this.filteredWallpapers;
     }
   },
-  
+
   mounted() {
     this.initYearOptions();
     // 如果通过路由传入了地区参数，设置地区筛选
-    if (this.region) {
-      const regionOption = this.regionOptions.find(r => r.value === this.region);
+    const region = this.stripHtml(this.region);
+    if (region) {
+      const regionOption = this.regionOptions.find(r => r.value === region);
       if (regionOption) {
-        this.filterForm.region = this.region;
-        this.applyRegionSEO(regionOption.label, this.region);
+        this.filterForm.region = region;
+        this.applyRegionSEO(regionOption.label, region);
       }
     }
     this.fetchWallpapers();
+  },
+
+  watch: {
+    // 路由地区变化时（如从 /region/zh-CN.html 导航到 /region/en-US.html），
+    // 组件实例被复用，mounted 不会再次触发，需监听 region prop 变化重新加载
+    region(newRegion, oldRegion) {
+      if (newRegion !== oldRegion) {
+        const region = this.stripHtml(newRegion);
+        this.currentPage = 1;
+        if (region) {
+          const regionOption = this.regionOptions.find(r => r.value === region);
+          if (regionOption) {
+            this.filterForm.region = region;
+            this.applyRegionSEO(regionOption.label, region);
+          }
+        } else {
+          this.filterForm.region = 'zh-CN';
+          removeJsonLd('region-jsonld');
+        }
+        this.fetchWallpapers();
+      }
+    }
   },
   
   beforeDestroy() {
@@ -370,6 +376,12 @@ export default {
   },
   
   methods: {
+    // 去除路由参数中的 .html 后缀
+    stripHtml(val) {
+      if (!val) return '';
+      return val.replace(/\.html$/, '');
+    },
+
     // 生成预览图（缩略图）URL：将 url 中的分辨率段替换为 400x240
     getPreviewUrl(wallpaper) {
       if (!wallpaper || !wallpaper.url) return '';
@@ -574,11 +586,11 @@ export default {
       if (this.filterForm.region && this.filterForm.region !== this.region) {
         const regionOption = this.regionOptions.find(r => r.value === this.filterForm.region);
         if (regionOption) {
-          this.$router.replace(`/region/${this.filterForm.region}`);
+          this.$router.replace(`/region/${this.filterForm.region}.html`);
           this.applyRegionSEO(regionOption.label, this.filterForm.region);
         }
       } else if (!this.filterForm.region && this.region) {
-        this.$router.replace('/');
+        this.$router.replace('/index.html');
         removeJsonLd('region-jsonld');
       }
       
@@ -592,7 +604,7 @@ export default {
       updateSEO({
         title,
         description,
-        path: `/region/${regionCode}`,
+        path: `/region/${regionCode}.html`,
         keywords: `${regionName}必应壁纸,${regionName}壁纸,必应壁纸,高清壁纸下载`
       });
       setRegionJsonLd(regionName, regionCode);
@@ -668,9 +680,10 @@ export default {
       });
     },
     
-    // 预览按钮：跳转到详情页（携带地区参数）
+    // 预览按钮：在新标签页打开详情页
     previewWallpaper(wallpaper) {
-      this.$router.push(`/wallpaper/detail/${wallpaper.id}?region=${this.filterForm.region}`);
+      const routeData = this.$router.resolve(`/wallpaper/detail/${this.filterForm.region}-${wallpaper.id}.html`);
+      window.open(routeData.href, '_blank');
     },
 
     // 处理筛选分辨率变化
@@ -692,34 +705,34 @@ export default {
       this.fetchWallpapers();
     },
     
-    // 下载按钮：在新标签页打开详情页（携带地区参数）
+    // 下载按钮：在新标签页打开详情页
     downloadWallpaper(wallpaper) {
-      const routeData = this.$router.resolve(`/wallpaper/detail/${wallpaper.id}?region=${this.filterForm.region}`);
+      const routeData = this.$router.resolve(`/wallpaper/detail/${this.filterForm.region}-${wallpaper.id}.html`);
       window.open(routeData.href, '_blank');
     },
     
     // 批量下载壁纸
     async batchDownload() {
-      if (this.filteredWallpapers.length === 0) {
+      if (this.allWallpapers.length === 0) {
         this.$message.warning('没有可下载的壁纸');
         return;
       }
-      
+
       this.batchDownloading = true;
       this.downloadProgress = 0;
-      this.downloadTotal = this.filteredWallpapers.length;
+      this.downloadTotal = this.allWallpapers.length;
       this.downloadStatus = '正在下载壁纸...';
-      
+
       try {
         const zip = new JSZip();
         const folder = zip.folder('bing-wallpapers');
         let loadedCount = 0;
-        const totalCount = this.filteredWallpapers.length;
+        const totalCount = this.allWallpapers.length;
         
         const concurrency = 3;
         const chunks = [];
         for (let i = 0; i < totalCount; i += concurrency) {
-          chunks.push(this.filteredWallpapers.slice(i, i + concurrency));
+          chunks.push(this.allWallpapers.slice(i, i + concurrency));
         }
         
         for (const chunk of chunks) {

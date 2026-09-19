@@ -133,6 +133,11 @@ const webpackConfig = merge(baseWebpackConfig, {
       {
         from: path.resolve(__dirname, '../static/7fceb212b40246d69ee07027523c9f0a.txt'),
         to: '7fceb212b40246d69ee07027523c9f0a.txt'
+      },
+      {
+        from: path.resolve(__dirname, '../static/_redirects'),
+        to: '_redirects',
+        toType: 'file'
       }
     ])
   ]

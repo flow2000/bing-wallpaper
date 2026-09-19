@@ -1,14 +1,56 @@
 <template>
   <div>
-    <router-view></router-view>
+    <div v-if="fatalError" class="fatal-error">
+      <i class="el-icon-warning"></i>
+      <p>页面加载出现问题，请刷新重试</p>
+      <el-button type="primary" size="small" @click="recoverError">刷新页面</el-button>
+    </div>
+    <router-view v-else></router-view>
   </div>
 </template>
 
 <script>
   export default {
     name: 'index',
+    data() {
+      return {
+        fatalError: false
+      };
+    },
+    errorCaptured(err, vm, info) {
+      console.error('全局错误捕获:', err, info);
+      this.fatalError = true;
+      return false;
+    },
+    methods: {
+      recoverError() {
+        this.fatalError = false;
+        this.$router.push('/index.html').catch(() => {});
+      }
+    }
   }
 </script>
+
+<style>
+  .fatal-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    gap: 16px;
+    color: #909399;
+  }
+
+  .fatal-error i {
+    font-size: 64px;
+    color: #f56c6c;
+  }
+
+  .fatal-error p {
+    font-size: 16px;
+  }
+</style>
 
 <style>
   /* 全局样式 */

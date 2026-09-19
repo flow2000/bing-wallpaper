@@ -4,7 +4,7 @@
     <header class="header" role="banner">
       <div class="header-content">
         <div class="logo-section">
-          <a href="/" class="logo-link" @click.prevent="refreshPage" aria-label="必应壁纸首页">
+          <a href="/index.html" class="logo-link" @click.prevent="refreshPage" aria-label="必应壁纸首页">
             <i class="iconfont icon-Bing" aria-hidden="true"></i>
             <span class="logo-text">必应壁纸</span>
           </a>
@@ -19,12 +19,12 @@
             router
             class="nav-menu"
           >
-            <el-menu-item index="/">
+            <el-menu-item index="/index.html">
               <i class="iconfont icon-home" aria-hidden="true"></i>
               <span slot="title">首页</span>
             </el-menu-item>
             
-            <el-menu-item index="/about">
+            <el-menu-item index="/about.html">
               <i class="iconfont icon-guanyu" aria-hidden="true"></i>
               <span slot="title">关于</span>
             </el-menu-item>
@@ -44,11 +44,11 @@
             <i class="el-icon-menu" aria-hidden="true"></i>
           </span>
           <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item command="/">
+            <el-dropdown-item command="/index.html">
               <i class="iconfont icon-home" aria-hidden="true"></i>
               首页
             </el-dropdown-item>
-            <el-dropdown-item command="/about">
+            <el-dropdown-item command="/about.html">
               <i class="iconfont icon-guanyu" aria-hidden="true"></i>
               关于
             </el-dropdown-item>

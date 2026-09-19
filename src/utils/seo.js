@@ -108,7 +108,7 @@ export function updateSEO({ title, description, keywords, path, image, type = 'w
  */
 export function setWallpaperJsonLd(wallpaper, regionCode, regionName) {
   if (!wallpaper) return;
-  const url = `${SITE_URL}/wallpaper/detail/${wallpaper.id}`;
+  const url = `${SITE_URL}/wallpaper/detail/${regionCode || ''}-${wallpaper.id}.html`;
   const image = wallpaper.url;
 
   const imageObject = {
@@ -159,7 +159,7 @@ export function setWallpaperJsonLd(wallpaper, regionCode, regionName) {
       '@type': 'ListItem',
       position: 2,
       name: `${regionName}必应壁纸`,
-      item: `${SITE_URL}/region/${regionCode}`
+      item: `${SITE_URL}/region/${regionCode}.html`
     });
     breadcrumb.itemListElement.push({
       '@type': 'ListItem',
@@ -204,7 +204,7 @@ export function setSiteJsonLd() {
  * @param {string} regionCode
  */
 export function setRegionJsonLd(regionName, regionCode) {
-  const url = `${SITE_URL}/region/${regionCode}`;
+  const url = `${SITE_URL}/region/${regionCode}.html`;
   const data = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
