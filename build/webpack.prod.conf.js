@@ -67,7 +67,9 @@ const webpackConfig = merge(baseWebpackConfig, {
       minify: {
         removeComments: true,
         collapseWhitespace: true,
-        removeAttributeQuotes: true
+        // 保留属性引号：Bing 等搜索引擎的验证器无法解析无引号的
+        // meta 属性值（如 name=msvalidate.01），会导致站点验证失败
+        removeAttributeQuotes: false
         // more options:
         // https://github.com/kangax/html-minifier#options-quick-reference
       },
