@@ -125,6 +125,10 @@ const webpackConfig = merge(baseWebpackConfig, {
       {
         from: path.resolve(__dirname, '../static/sitemap.xml'),
         to: 'sitemap.xml'
+      },
+      {
+        from: path.resolve(__dirname, '../static/baidu_verify_codeva-1urA4GE3Sf.html'),
+        to: 'baidu_verify_codeva-1urA4GE3Sf.html'
       }
     ])
   ]
