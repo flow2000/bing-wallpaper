@@ -1,5 +1,16 @@
 <template>
   <div class="wallpaper-container">
+    <!-- 站点介绍（SEO 文本内容） -->
+    <section class="site-intro">
+      <h1 class="site-title">必应壁纸 - 微软必应每日高清壁纸下载</h1>
+      <p class="site-desc">
+        必应壁纸(Bing Wallpaper)下载站，每天同步更新<strong>微软必应</strong>官方每日壁纸，
+        提供<strong>中国、美国、日本、德国、英国、法国、意大利、加拿大、印度</strong>等9个国家地区的必应壁纸浏览与下载。
+        支持 <strong>4K、1920×1080、1920×1200、1366×768</strong> 等多种分辨率切换，
+        可按年份筛选并<strong>一键批量下载</strong>全年壁纸打包，所有高清壁纸免费下载，适合作为电脑桌面和手机壁纸使用。
+      </p>
+    </section>
+
     <!-- 筛选区域 -->
     <el-card class="filter-card" shadow="hover">
       <el-form :inline="true" :model="filterForm" class="filter-form">
@@ -138,11 +149,11 @@
             shadow="hover"
           >
             <!-- 壁纸图片容器 -->
-            <div 
-              class="wallpaper-wrapper" 
+            <router-link
+              :to="`/wallpaper/detail/${wallpaper.id}?region=${filterForm.region}`"
+              class="wallpaper-wrapper"
               :data-wallpaper-id="wallpaper.id"
-              @click="previewWallpaper(wallpaper)" 
-              @mouseenter="handleCardHover(wallpaper)"
+              @mouseenter.native="handleCardHover(wallpaper)"
             >
               <el-image
                 :src="getImageSrc(wallpaper)"
@@ -179,7 +190,7 @@
                       type="primary" 
                       size="mini" 
                       icon="el-icon-view"
-                      @click.stop="previewWallpaper(wallpaper)"
+                      @click.native.stop="previewWallpaper(wallpaper)"
                     >
                       预览
                     </el-button>
@@ -187,14 +198,14 @@
                       type="success" 
                       size="mini" 
                       icon="el-icon-download"
-                      @click.stop="downloadWallpaper(wallpaper)"
+                      @click.native.stop="downloadWallpaper(wallpaper)"
                     >
                       下载
                     </el-button>
                   </div>
                 </div>
               </div>
-            </div>
+            </router-link>
           </el-card>
         </el-col>
       </el-row>
@@ -216,100 +227,22 @@
         </el-pagination>
       </div>
     </div>
-    
-    <!-- 壁纸预览对话框 -->
-    <el-dialog
-      :title="(previewWallpaperData && previewWallpaperData.title) || '壁纸预览'"
-      :visible.sync="previewDialogVisible"
-      width="80%"
-      top="5vh"
-      class="preview-dialog"
-      :close-on-click-modal="true"
-    >
-      <div class="preview-container" v-if="previewWallpaperData">
-        <div class="preview-image-wrapper" :data-resolution="previewResolution">
-          <el-image 
-            :src="previewWallpaperData.url" 
-            :alt="previewWallpaperData.title"
-            fit="contain"
-            class="preview-image"
-          >
-          </el-image>
-        </div>
-        
-        <div class="preview-info">
-          <h3 class="preview-title">{{ previewWallpaperData.title }}</h3>
-          <p class="preview-copyright">
-            <span class="label">版权信息：</span>
-            <span class="content">{{ previewWallpaperData.copyright }}</span>
-          </p>
-          <p class="preview-date">
-            <span class="label">发布日期：</span>
-            <span class="content">{{ previewWallpaperData.datetime }}</span>
-          </p>
-          
-          <!-- 分辨率选择 -->
-          <div class="resolution-selector">
-            <span class="label">选择分辨率：</span>
-            <el-select 
-              v-model="previewResolution" 
-              placeholder="选择分辨率"
-              size="small"
-              @change="handlePreviewResolutionChange"
-            >
-              <el-option
-                v-for="res in resolutions"
-                :key="res"
-                :label="res"
-                :value="res === '4K' ? 'UHD' : res"
-              >
-              </el-option>
-            </el-select>
-          </div>
-          
-          <!-- 操作按钮 -->
-          <div class="preview-actions">
-            <el-button 
-              type="primary" 
-              icon="el-icon-view"
-              @click="openOriginalImage"
-            >
-              查看原图
-            </el-button>
-            <el-button 
-              type="success" 
-              icon="el-icon-download"
-              @click="downloadWallpaper(previewWallpaperData)"
-            >
-              下载壁纸
-            </el-button>
-            <el-button 
-              type="success" 
-              icon="el-icon-download"
-              @click="download4KWallpaper(previewWallpaperData)"
-            >
-              下载4K壁纸
-            </el-button>
-            <el-button 
-              type="warning" 
-              icon="el-icon-link"
-              @click="copyImageUrl"
-            >
-              复制链接
-            </el-button>
-          </div>
-        </div>
-      </div>
-    </el-dialog>
   </div>
 </template>
 
 <script>
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
+import { updateSEO, setRegionJsonLd, removeJsonLd } from '@/utils/seo';
 
 export default {
   name: 'WallpaperIndex',
+  props: {
+    region: {
+      type: String,
+      default: ''
+    }
+  },
   data() {
     return {
       // 加载状态
@@ -352,19 +285,13 @@ export default {
       imageWidth: 1920,
       imageHeight: 1080,
       uhd: false,
+      selectedResolution: '',
       
       // 排序方式
       sortOrder: 'desc',
       
       // 总数据量
       total: 0,
-      
-      // 预览对话框
-      previewDialogVisible: false,
-      previewWallpaperData: null,
-      selectedResolution: '1920x1080',
-      previewResolution: '1920x1080',
-      previewOriginalUrl: '',
       
       // 已知地区配置
       regionOptions: [
@@ -421,6 +348,14 @@ export default {
   
   mounted() {
     this.initYearOptions();
+    // 如果通过路由传入了地区参数，设置地区筛选
+    if (this.region) {
+      const regionOption = this.regionOptions.find(r => r.value === this.region);
+      if (regionOption) {
+        this.filterForm.region = this.region;
+        this.applyRegionSEO(regionOption.label, this.region);
+      }
+    }
     this.fetchWallpapers();
   },
   
@@ -634,8 +569,33 @@ export default {
       } else {
         this.pageSize = 12; // 恢复默认值
       }
+
+      // 地区变化时同步路由并更新 SEO
+      if (this.filterForm.region && this.filterForm.region !== this.region) {
+        const regionOption = this.regionOptions.find(r => r.value === this.filterForm.region);
+        if (regionOption) {
+          this.$router.replace(`/region/${this.filterForm.region}`);
+          this.applyRegionSEO(regionOption.label, this.filterForm.region);
+        }
+      } else if (!this.filterForm.region && this.region) {
+        this.$router.replace('/');
+        removeJsonLd('region-jsonld');
+      }
       
       this.fetchWallpapers(); // 重新获取数据
+    },
+
+    // 应用地区页 SEO：动态 title/description + 地区结构化数据
+    applyRegionSEO(regionName, regionCode) {
+      const title = `${regionName}必应壁纸 - ${regionName}地区每日高清壁纸下载`;
+      const description = `${regionName}必应壁纸下载，提供微软必应${regionName}地区每日高清壁纸，支持4K、1920x1080等多种分辨率，免费下载高清电脑壁纸。`;
+      updateSEO({
+        title,
+        description,
+        path: `/region/${regionCode}`,
+        keywords: `${regionName}必应壁纸,${regionName}壁纸,必应壁纸,高清壁纸下载`
+      });
+      setRegionJsonLd(regionName, regionCode);
     },
     
     // 处理日期范围变化
@@ -668,6 +628,10 @@ export default {
     clearFilters() {
       this.filterForm.region = 'zh-CN';
       this.filterForm.year = '';
+      this.selectedResolution = '';
+      this.uhd = false;
+      this.imageWidth = 1920;
+      this.imageHeight = 1080;
       this.currentPage = 1;
       this.fetchWallpapers();
     },
@@ -704,24 +668,11 @@ export default {
       });
     },
     
-    // 预览壁纸
+    // 预览按钮：跳转到详情页（携带地区参数）
     previewWallpaper(wallpaper) {
-      this.previewWallpaperData = wallpaper;
-      this.previewOriginalUrl = wallpaper.url;
-      this.previewResolution = this.extractResolution(wallpaper.url) || '1920x1080';
-      this.previewDialogVisible = true;
+      this.$router.push(`/wallpaper/detail/${wallpaper.id}?region=${this.filterForm.region}`);
     },
-    
-    // 从URL中提取分辨率
-    extractResolution(url) {
-      const match = url.match(/(\d+)x(\d+)/);
-      if (match) {
-        const resolution = `${match[1]}x${match[2]}`;
-        return resolution === 'UHD' ? '4K' : resolution;
-      }
-      return null;
-    },
-    
+
     // 处理筛选分辨率变化
     handleResolutionChange(resolution) {
       // 更新图片尺寸配置
@@ -741,106 +692,10 @@ export default {
       this.fetchWallpapers();
     },
     
-    // 处理预览分辨率变化
-    handlePreviewResolutionChange(resolution) {
-      if (this.previewWallpaperData && this.previewOriginalUrl) {
-        let newUrl;
-        if (resolution === 'UHD') {
-          newUrl = this.previewOriginalUrl.replace(/_\d+x\d+/, '_UHD');
-        } else {
-          newUrl = this.previewOriginalUrl.replace(/_\d+x\d+/, `_${resolution}`);
-        }
-        this.previewWallpaperData.url = newUrl;
-      }
-    },
-    
-    // 下载壁纸
+    // 下载按钮：在新标签页打开详情页（携带地区参数）
     downloadWallpaper(wallpaper) {
-      try {
-        const link = document.createElement('a');
-        link.href = wallpaper.url;
-        link.target = '_blank';
-        link.download = `bing-wallpaper-${wallpaper.datetime}-${wallpaper.id}.jpg`;
-        link.style.display = 'none';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        this.$message.success('开始下载壁纸');
-      } catch (error) {
-        console.error('下载失败:', error);
-        this.$message.error('下载失败，请重试');
-      }
-    },
-    
-    // 下载4K壁纸
-    download4KWallpaper(wallpaper) {
-      try {
-        const link = document.createElement('a');
-        const url4K = wallpaper.url.replace(/_\d+x\d+/, '_UHD');
-        link.href = url4K;
-        link.target = '_blank';
-        link.download = `bing-wallpaper-4K-${wallpaper.datetime}-${wallpaper.id}.jpg`;
-        link.style.display = 'none';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        this.$message.success('开始下载4K壁纸');
-      } catch (error) {
-        console.error('下载失败:', error);
-        this.$message.error('下载失败，请重试');
-      }
-    },
-    
-    // 打开原图
-    openOriginalImage() {
-      if (this.previewWallpaperData) {
-        window.open(this.previewWallpaperData.url, '_blank');
-      }
-    },
-    
-    // 复制图片链接
-    copyImageUrl() {
-      if (this.previewWallpaperData) {
-        const url = this.previewWallpaperData.url;
-        
-        // 使用原生 Clipboard API
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(url).then(() => {
-            this.$message.success('图片链接已复制到剪贴板');
-          }).catch(() => {
-            this.fallbackCopyText(url);
-          });
-        } else {
-          // 降级方案
-          this.fallbackCopyText(url);
-        }
-      }
-    },
-    
-    // 降级复制方案
-    fallbackCopyText(text) {
-      const textarea = document.createElement('textarea');
-      textarea.value = text;
-      textarea.style.position = 'fixed';
-      textarea.style.opacity = '0';
-      document.body.appendChild(textarea);
-      textarea.select();
-      
-      try {
-        const successful = document.execCommand('copy');
-        if (successful) {
-          this.$message.success('图片链接已复制到剪贴板');
-        } else {
-          this.$message.warning('复制失败，请手动复制链接');
-        }
-      } catch (err) {
-        console.error('复制失败:', err);
-        this.$message.warning('复制失败，请手动复制链接');
-      }
-      
-      document.body.removeChild(textarea);
+      const routeData = this.$router.resolve(`/wallpaper/detail/${wallpaper.id}?region=${this.filterForm.region}`);
+      window.open(routeData.href, '_blank');
     },
     
     // 批量下载壁纸
@@ -948,6 +803,35 @@ export default {
 </script>
 
 <style scoped>
+/* 站点介绍区域（SEO 文本） */
+.site-intro {
+  background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+  border-radius: 12px;
+  padding: 24px 28px;
+  margin-bottom: 24px;
+  border: 1px solid #ebeef5;
+}
+
+.site-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: #303133;
+  margin: 0 0 12px 0;
+  line-height: 1.4;
+}
+
+.site-desc {
+  font-size: 15px;
+  line-height: 1.8;
+  color: #606266;
+  margin: 0;
+}
+
+.site-desc strong {
+  color: #409eff;
+  font-weight: 600;
+}
+
 /* 容器样式 */
 .wallpaper-container {
   padding: 0;
@@ -1117,10 +1001,13 @@ export default {
 /* 壁纸包装器 */
 .wallpaper-wrapper {
   position: relative;
+  display: block;
   width: 100%;
   padding-top: 56.25%; /* 16:9 比例 */
   overflow: hidden;
   cursor: pointer;
+  text-decoration: none;
+  color: inherit;
 }
 
 /* 壁纸图片样式 */
@@ -1249,134 +1136,6 @@ export default {
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
-}
-
-/* 预览对话框样式 */
-.preview-dialog /deep/ .el-dialog {
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.preview-dialog /deep/ .el-dialog__header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 16px 24px;
-}
-
-.preview-dialog /deep/ .el-dialog__title {
-  color: #fff;
-  font-size: 18px;
-}
-
-.preview-dialog /deep/ .el-dialog__headerbtn .el-dialog__close {
-  color: #fff;
-}
-
-.preview-dialog /deep/ .el-dialog__body {
-  padding: 0;
-}
-
-.preview-container {
-  display: flex;
-  flex-direction: column;
-}
-
-.preview-image-wrapper {
-  background: #000;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 400px;
-  max-height: 80vh;
-  overflow: hidden;
-  position: relative;
-}
-
-.preview-image {
-  max-width: 100%;
-  max-height: 80vh;
-  object-fit: contain;
-}
-
-/* 4K 分辨率适配 */
-.preview-image-wrapper[data-resolution="UHD"] {
-  max-height: 85vh;
-}
-
-.preview-image-wrapper[data-resolution="UHD"] .preview-image {
-  max-height: 85vh;
-}
-
-/* 超宽分辨率适配 */
-.preview-image-wrapper[data-resolution="1920x1200"] {
-  max-height: 75vh;
-}
-
-.preview-image-wrapper[data-resolution="1920x1200"] .preview-image {
-  max-height: 75vh;
-}
-
-/* 竖屏分辨率适配 */
-.preview-image-wrapper[data-resolution="1080x1920"],
-.preview-image-wrapper[data-resolution="768x1280"],
-.preview-image-wrapper[data-resolution="720x1280"] {
-  max-height: 90vh;
-}
-
-.preview-image-wrapper[data-resolution="1080x1920"] .preview-image,
-.preview-image-wrapper[data-resolution="768x1280"] .preview-image,
-.preview-image-wrapper[data-resolution="720x1280"] .preview-image {
-  max-height: 90vh;
-}
-
-.preview-info {
-  padding: 24px;
-  background: #fff;
-}
-
-.preview-title {
-  font-size: 20px;
-  color: #303133;
-  margin-bottom: 16px;
-  font-weight: 600;
-}
-
-.preview-copyright,
-.preview-date {
-  font-size: 14px;
-  color: #606266;
-  margin-bottom: 8px;
-}
-
-.preview-copyright .label,
-.preview-date .label {
-  color: #909399;
-  margin-right: 8px;
-}
-
-.preview-copyright .content {
-  color: #303133;
-}
-
-/* 分辨率选择器 */
-.resolution-selector {
-  margin: 20px 0;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.resolution-selector .label {
-  color: #606266;
-  font-size: 14px;
-  white-space: nowrap;
-}
-
-/* 预览操作按钮 */
-.preview-actions {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-top: 16px;
 }
 
 /* 响应式设计 */
@@ -1512,50 +1271,6 @@ export default {
   .custom-pagination /deep/ .btn-prev,
   .custom-pagination /deep/ .btn-next {
     padding: 0 8px;
-  }
-  
-  /* 预览对话框 */
-  .preview-dialog /deep/ .el-dialog {
-    width: 95% !important;
-    margin: 0 auto;
-  }
-  
-  .preview-dialog /deep/ .el-dialog__body {
-    padding: 12px;
-  }
-  
-  .preview-image-wrapper {
-    min-height: 300px;
-    max-height: 50vh;
-  }
-  
-  .preview-image-wrapper[data-resolution="UHD"] {
-    max-height: 60vh;
-  }
-  
-  .preview-image-wrapper[data-resolution="1920x1200"] {
-    max-height: 55vh;
-  }
-  
-  .preview-image-wrapper[data-resolution="1080x1920"] {
-    max-height: 65vh;
-  }
-  
-  .preview-info {
-    padding: 16px 12px;
-  }
-  
-  .preview-title {
-    font-size: 18px;
-  }
-  
-  .preview-actions {
-    flex-direction: column;
-    gap: 8px;
-  }
-  
-  .preview-actions .el-button {
-    width: 100%;
   }
   
   /* 悬浮层 */

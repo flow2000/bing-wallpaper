@@ -101,15 +101,28 @@
             <h3 class="section-title">版权信息</h3>
             <div class="copyright-content">
               <p class="copyright-text">{{ wallpaperData.copyright }}</p>
-              <a 
-                v-if="wallpaperData.copyrightlink" 
-                :href="wallpaperData.copyrightlink" 
-                target="_blank"
-                class="copyright-link"
-              >
-                <i class="el-icon-link"></i>
-                查看来源
-              </a>
+              <el-divider class="link-divider"></el-divider>
+              <div class="copyright-links">
+                <a 
+                  v-if="wallpaperData.copyrightlink" 
+                  :href="wallpaperData.copyrightlink" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="copyright-link"
+                >
+                  <i class="el-icon-link"></i>
+                  查看来源
+                </a>
+                <a 
+                  :href="wallpaperData.url" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="copyright-link"
+                >
+                  <i class="el-icon-picture-outline"></i>
+                  打开原图
+                </a>
+              </div>
             </div>
           </div>
           
@@ -208,20 +221,12 @@
         </div>
       </el-card>
     </div>
-    
-    <!-- 提示消息 -->
-    <el-message 
-      v-if="message.show" 
-      :type="message.type" 
-      :closable="false"
-      class="custom-message"
-    >
-      {{ message.text }}
-    </el-message>
   </div>
 </template>
 
 <script>
+import { updateSEO, setWallpaperJsonLd } from '@/utils/seo';
+
 export default {
   name: 'WallpaperDetail',
   data() {
@@ -238,11 +243,21 @@ export default {
       // 当前分辨率
       currentResolution: '1920x1080',
       
-      // 消息提示
-      message: {
-        show: false,
-        type: 'success',
-        text: ''
+      // 壁纸所属地区
+      regionCode: '',
+      regionName: '',
+      
+      // 地区代码与名称映射
+      regionMap: {
+        'zh-CN': '中国',
+        'de-DE': '德国',
+        'en-CA': '加拿大',
+        'en-GB': '英国',
+        'en-IN': '印度',
+        'en-US': '美国',
+        'fr-FR': '法国',
+        'it-IT': '意大利',
+        'ja-JP': '日本'
       },
       
       // 已知分辨率配置
@@ -276,74 +291,195 @@ export default {
         /\d+x\d+/,
         this.currentResolution
       );
+    },
+    
+    // 地区列表页链接（返回该地区的壁纸列表）
+    regionListUrl() {
+      if (!this.regionCode) return '/';
+      return `/region/${this.regionCode}`;
     }
   },
   
   mounted() {
     this.loadWallpaperDetail();
+    window.scrollTo(0, 0);
   },
-  
+
+  watch: {
+    // 同一路由不同 ID 导航时（如从一个详情页跳到另一个详情页），
+    // Vue 会复用组件实例，mounted 不会再次触发，需监听路由参数变化重新加载
+    '$route.params.id'(newId, oldId) {
+      if (newId && newId !== oldId) {
+        this.loadWallpaperDetail();
+        window.scrollTo(0, 0);
+      }
+    }
+  },
+
   methods: {
-    // 加载壁纸详情
+    // 加载壁纸详情：从路由 query 读取地区，调用 /all 接口按地区+ID 获取数据
     async loadWallpaperDetail() {
       this.loading = true;
       this.errorMessage = '';
-      
+
+      const wallpaperId = this.$route.params.id;
+      if (!wallpaperId) {
+        this.errorMessage = '缺少壁纸ID参数';
+        this.loading = false;
+        return;
+      }
+
+      // 从路由 query 读取地区（由列表页跳转时传入）
+      const region = this.$route.query.region || '';
+
       try {
-        // 从路由参数获取壁纸ID
-        const wallpaperId = this.$route.params.id;
-        
-        if (!wallpaperId) {
-          throw new Error('缺少壁纸ID参数');
+        const PAGE_SIZE = 100;
+        const targetId = Number(wallpaperId);
+
+        // 构建请求参数（含地区 mkt）
+        const buildParams = (page) => {
+          const p = { page, limit: PAGE_SIZE, order: 'desc' };
+          if (region) p.mkt = region;
+          return p;
+        };
+
+        // 先拉第一页，同时拿到 total 和前 100 条数据
+        const firstResp = await this.$axios.get('https://api.bimg.cc/all', {
+          params: buildParams(1)
+        });
+
+        if (!firstResp.data || firstResp.data.code !== 200) {
+          throw new Error((firstResp.data && firstResp.data.msg) || '获取壁纸详情失败');
         }
-        
-        // 调用API获取壁纸详情
-        const response = await this.$axios.get(`https://api.bimg.cc/detail?id=${wallpaperId}`);
-        
-        if (response.data && response.data.code === 200) {
-          this.wallpaperData = response.data.data;
-          
-          // 从URL中提取当前分辨率
-          if (this.wallpaperData.url) {
-            const match = this.wallpaperData.url.match(/(\d+)x(\d+)/);
-            if (match) {
-              this.currentResolution = `${match[1]}x${match[2]}`;
+
+        const total = firstResp.data.total || 0;
+        const firstList = firstResp.data.data || [];
+
+        // 先在第一页查找
+        let found = firstList.find(w => String(w.id) === String(wallpaperId));
+        if (found) {
+          this.setWallpaperData(found);
+          return;
+        }
+
+        // 不在第一页，根据 id 连续递增特性估算目标页
+        const position = total - targetId + 1;
+        const estimatedPage = Math.max(2, Math.ceil(position / PAGE_SIZE));
+
+        const pageResp = await this.$axios.get('https://api.bimg.cc/all', {
+          params: buildParams(estimatedPage)
+        });
+
+        if (pageResp.data && pageResp.data.code === 200) {
+          const list = pageResp.data.data || [];
+          found = list.find(w => String(w.id) === String(wallpaperId));
+
+          // 若因 id 存在跳号导致估算页未命中，尝试前后各一页
+          if (!found) {
+            for (const p of [estimatedPage - 1, estimatedPage + 1]) {
+              if (p < 1) continue;
+              const resp = await this.$axios.get('https://api.bimg.cc/all', {
+                params: buildParams(p)
+              });
+              if (resp.data && resp.data.code === 200) {
+                found = (resp.data.data || []).find(w => String(w.id) === String(wallpaperId));
+                if (found) break;
+              }
             }
           }
+
+          if (found) {
+            this.setWallpaperData(found);
+          } else {
+            this.errorMessage = '未找到该壁纸';
+          }
         } else {
-          throw new Error((response.data && response.data.msg) || '获取壁纸详情失败');
+          this.errorMessage = '获取壁纸详情失败';
         }
       } catch (error) {
         console.error('加载壁纸详情失败:', error);
         this.errorMessage = error.message || '网络连接异常，请检查网络后重试';
-        
-        // 如果没有ID参数，可以尝试使用传递的数据
-        const passedData = this.$route.query.data;
-        if (passedData) {
-          try {
-            this.wallpaperData = JSON.parse(decodeURIComponent(passedData));
-            const match = this.wallpaperData.url.match(/(\d+)x(\d+)/);
-            if (match) {
-              this.currentResolution = `${match[1]}x${match[2]}`;
-            }
-            this.errorMessage = '';
-          } catch (e) {
-            console.error('解析传递数据失败:', e);
-          }
-        }
       } finally {
         this.loading = false;
       }
+    },
+
+    // 设置壁纸数据并更新分辨率、地区与 SEO
+    setWallpaperData(wallpaper) {
+      this.wallpaperData = wallpaper;
+      if (wallpaper.url) {
+        const match = wallpaper.url.match(/(\d+)x(\d+)/);
+        if (match) {
+          this.currentResolution = `${match[1]}x${match[2]}`;
+        }
+      }
+      this.resolveRegion(wallpaper);
+      this.applyDetailSEO(wallpaper);
+    },
+
+    // 解析壁纸所属地区：优先从路由 query 读取，其次从壁纸 URL 中提取
+    resolveRegion(wallpaper) {
+      let code = this.$route.query.region || '';
+      // 回退：从壁纸 URL 中提取地区代码（如 _ZH-CN5896237112 → ZH-CN）
+      if (!code && wallpaper.url) {
+        const match = wallpaper.url.match(/_([A-Z]{2}-[A-Z]{2})\d+/);
+        if (match) {
+          // 转换为标准格式：语言小写-国家大写（如 zh-CN）
+          const parts = match[1].split('-');
+          code = `${parts[0].toLowerCase()}-${parts[1].toUpperCase()}`;
+        }
+      }
+      // 在 regionMap 中查找（不区分大小写），同时标准化 code
+      if (code) {
+        const lowerKey = code.toLowerCase();
+        const foundKey = Object.keys(this.regionMap).find(k => k.toLowerCase() === lowerKey);
+        if (foundKey) {
+          this.regionCode = foundKey;
+          this.regionName = this.regionMap[foundKey];
+          return;
+        }
+      }
+      this.regionCode = '';
+      this.regionName = '';
     },
     
     // 重新加载
     retryLoad() {
       this.loadWallpaperDetail();
     },
+
+    // 动态更新详情页 SEO：title/description/canonical + 壁纸结构化数据
+    applyDetailSEO(wallpaper) {
+      if (!wallpaper) return;
+      const regionPart = this.regionName ? `${this.regionName}必应壁纸，` : '';
+      const title = `${wallpaper.title} - ${regionPart}必应壁纸高清下载`;
+      const description = `${wallpaper.title}。${wallpaper.copyright || ''} 发布于${wallpaper.datetime}${this.regionName ? `，来自${this.regionName}地区` : ''}。必应壁纸提供4K、1920x1080等多种分辨率免费下载。`;
+      const keywords = [
+        wallpaper.title,
+        this.regionName ? `${this.regionName}必应壁纸` : '必应壁纸',
+        this.regionName ? `${this.regionName}壁纸` : '',
+        '高清壁纸下载',
+        'bing wallpaper',
+        wallpaper.datetime
+      ].filter(Boolean).join(',');
+      updateSEO({
+        title,
+        description,
+        path: `/wallpaper/detail/${wallpaper.id}`,
+        image: wallpaper.url,
+        type: 'article',
+        keywords
+      });
+      setWallpaperJsonLd(wallpaper, this.regionCode, this.regionName);
+    },
     
-    // 返回列表
+    // 返回列表：优先返回上一页，无历史记录时返回首页
     goBack() {
-      this.$router.go(-1);
+      if (window.history.length > 1) {
+        this.$router.go(-1);
+      } else {
+        this.$router.push('/');
+      }
     },
     
     // 切换分辨率
@@ -377,27 +513,7 @@ export default {
     // 复制图片链接
     copyImageUrl() {
       if (!this.wallpaperData) return;
-      
-      this.$copyText(this.currentImageUrl).then(() => {
-        this.showMessage('图片链接已复制到剪贴板', 'success');
-      }).catch(() => {
-        // 降级方案：使用传统方式复制
-        const textArea = document.createElement('textarea');
-        textArea.value = this.currentImageUrl;
-        textArea.style.position = 'fixed';
-        textArea.style.opacity = '0';
-        document.body.appendChild(textArea);
-        textArea.select();
-        
-        try {
-          document.execCommand('copy');
-          this.showMessage('图片链接已复制到剪贴板', 'success');
-        } catch (err) {
-          this.showMessage('复制失败，请手动复制链接', 'warning');
-        }
-        
-        document.body.removeChild(textArea);
-      });
+      this.copyToClipboard(this.currentImageUrl, '图片链接已复制到剪贴板');
     },
     
     // 设为桌面壁纸
@@ -453,28 +569,44 @@ export default {
     // 复制分享链接
     copyShareLink() {
       if (!this.wallpaperData) return;
-      
       const shareUrl = `${window.location.origin}/wallpaper/detail/${this.wallpaperData.id}`;
-      
-      this.$copyText(shareUrl).then(() => {
-        this.showMessage('分享链接已复制', 'success');
-      }).catch(() => {
+      this.copyToClipboard(shareUrl, '分享链接已复制');
+    },
+
+    // 通用复制到剪贴板（原生 API + execCommand 降级）
+    copyToClipboard(text, successMsg) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          this.showMessage(successMsg, 'success');
+        }).catch(() => {
+          this.fallbackCopy(text, successMsg);
+        });
+      } else {
+        this.fallbackCopy(text, successMsg);
+      }
+    },
+
+    fallbackCopy(text, successMsg) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        const ok = document.execCommand('copy');
+        this.showMessage(ok ? successMsg : '复制失败，请手动复制', ok ? 'success' : 'warning');
+      } catch (err) {
         this.showMessage('复制失败，请手动复制', 'warning');
-      });
+      }
+      document.body.removeChild(textarea);
     },
     
-    // 显示消息提示
+    // 显示消息提示（使用 Element UI 的 $message 服务）
     showMessage(text, type = 'success') {
-      this.message = {
-        show: true,
-        type,
-        text
-      };
-      
-      // 3秒后隐藏消息
-      setTimeout(() => {
-        this.message.show = false;
-      }, 3000);
+      if (this.$message) {
+        this.$message({ message: text, type, showClose: false, duration: 3000 });
+      }
     }
   }
 };
@@ -591,8 +723,8 @@ export default {
 /* 信息项 */
 .info-item {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 12px;
   padding: 12px 0;
   border-bottom: 1px dashed #ebeef5;
 }
@@ -602,6 +734,7 @@ export default {
 }
 
 .info-label {
+  flex: 0 0 96px;
   color: #909399;
   font-size: 14px;
   display: flex;
@@ -614,6 +747,7 @@ export default {
 }
 
 .info-value {
+  flex: 1;
   color: #606266;
   font-size: 14px;
   font-weight: 500;
@@ -662,6 +796,20 @@ export default {
   color: #66b1ff;
 }
 
+/* 链接分隔符 */
+.link-divider {
+  margin: 12px 0;
+  border-top: 1px dashed #dcdfe6;
+}
+
+/* 版权链接容器 */
+.copyright-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+}
+
 /* 分辨率网格 */
 .resolution-grid {
   display: flex;
@@ -670,8 +818,10 @@ export default {
 }
 
 .resolution-btn {
-  min-width: 90px;
+  width: 88px;
+  flex: 0 0 auto;
   text-align: center;
+  margin: 0 !important;
 }
 
 .resolution-btn.is-active {
@@ -685,16 +835,27 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  max-width: 320px;
 }
 
 .quick-actions .el-button {
   width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 0 !important;
 }
 
 /* 分享按钮 */
 .share-buttons {
   display: flex;
+  align-items: center;
   gap: 12px;
+}
+
+.share-buttons .el-button {
+  margin: 0 !important;
 }
 
 /* 加载状态 */
@@ -746,14 +907,6 @@ export default {
   color: #909399;
   font-size: 14px;
   margin: 0 0 20px 0;
-}
-
-/* 自定义消息 */
-.custom-message {
-  position: fixed;
-  top: 80px;
-  right: 20px;
-  z-index: 9999;
 }
 
 /* 响应式设计 */

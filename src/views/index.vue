@@ -1,97 +1,99 @@
 <template>
   <div class="app-container">
     <!-- 顶部导航栏 -->
-    <el-header class="header">
+    <header class="header" role="banner">
       <div class="header-content">
         <div class="logo-section">
-          <a href="/" class="logo-link" @click.prevent="refreshPage">
-            <i class="iconfont icon-Bing"></i>
+          <a href="/" class="logo-link" @click.prevent="refreshPage" aria-label="必应壁纸首页">
+            <i class="iconfont icon-Bing" aria-hidden="true"></i>
             <span class="logo-text">必应壁纸</span>
           </a>
         </div>
         
         <!-- 桌面端菜单 -->
-        <el-menu 
-          :default-active="activeIndex" 
-          mode="horizontal" 
-          @select="handleSelect" 
-          router
-          class="nav-menu desktop-menu"
-        >
-          <el-menu-item index="/">
-            <i class="iconfont icon-home"></i>
-            <span slot="title">首页</span>
-          </el-menu-item>
-          
-          <el-menu-item index="/about">
-            <i class="iconfont icon-guanyu"></i>
-            <span slot="title">关于</span>
-          </el-menu-item>
-          
-          <el-menu-item index="/blog">
-            <a href="https://blog.aqcoder.cn" target="_blank" class="external-link">
-              <i class="iconfont icon-bokeyuan"></i>
-              <span slot="title">博客</span>
-            </a>
-          </el-menu-item>
-        </el-menu>
+        <nav class="desktop-menu" role="navigation" aria-label="主导航">
+          <el-menu 
+            :default-active="activeIndex" 
+            mode="horizontal" 
+            @select="handleSelect" 
+            router
+            class="nav-menu"
+          >
+            <el-menu-item index="/">
+              <i class="iconfont icon-home" aria-hidden="true"></i>
+              <span slot="title">首页</span>
+            </el-menu-item>
+            
+            <el-menu-item index="/about">
+              <i class="iconfont icon-guanyu" aria-hidden="true"></i>
+              <span slot="title">关于</span>
+            </el-menu-item>
+            
+            <el-menu-item index="/blog">
+              <a href="https://blog.aqcoder.cn" target="_blank" rel="noopener" class="external-link">
+                <i class="iconfont icon-bokeyuan" aria-hidden="true"></i>
+                <span slot="title">博客</span>
+              </a>
+            </el-menu-item>
+          </el-menu>
+        </nav>
         
         <!-- 移动端菜单按钮 -->
         <el-dropdown trigger="click" class="mobile-menu-dropdown" @command="handleMobileMenuCommand">
-          <span class="el-dropdown-link">
-            <i class="el-icon-menu"></i>
+          <span class="el-dropdown-link" tabindex="0" aria-label="打开菜单">
+            <i class="el-icon-menu" aria-hidden="true"></i>
           </span>
           <el-dropdown-menu slot="dropdown">
             <el-dropdown-item command="/">
-              <i class="iconfont icon-home"></i>
+              <i class="iconfont icon-home" aria-hidden="true"></i>
               首页
             </el-dropdown-item>
             <el-dropdown-item command="/about">
-              <i class="iconfont icon-guanyu"></i>
+              <i class="iconfont icon-guanyu" aria-hidden="true"></i>
               关于
             </el-dropdown-item>
             <el-dropdown-item>
-              <a href="https://blog.aqcoder.cn" target="_blank" class="external-link">
-                <i class="iconfont icon-bokeyuan"></i>
+              <a href="https://blog.aqcoder.cn" target="_blank" rel="noopener" class="external-link">
+                <i class="iconfont icon-bokeyuan" aria-hidden="true"></i>
                 博客
               </a>
             </el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
       </div>
-    </el-header>
+    </header>
     
     <!-- 主内容区域 -->
-    <el-main class="main-content">
+    <main class="main-content" role="main">
       <router-view></router-view>
-    </el-main>
+    </main>
     
     <!-- 底部版权信息 -->
-    <el-footer class="footer">
+    <footer class="footer" role="contentinfo">
       <div class="footer-content">
         <span class="footer-item">
-          <i class="el-icon-picture"></i>
-          <span>本站所有图片均来自必应搜索</span>
+          <i class="el-icon-picture" aria-hidden="true"></i>
+          <span>本站所有图片均来自必应搜索，仅供学习和个人使用</span>
         </span>
-        <span class="divider">|</span>
+        <span class="divider" aria-hidden="true">|</span>
         <span class="footer-item">
-          <i class="el-icon-user"></i>
+          <i class="el-icon-user" aria-hidden="true"></i>
           <span>您是本站第 <span id="busuanzi_value_site_uv" class="highlight">{{ visitorCount }}</span> 个小伙伴</span>
         </span>
-        <span class="divider">|</span>
+        <span class="divider" aria-hidden="true">|</span>
         <span class="footer-item">
-          <i class="el-icon-star-off"></i>
+          <i class="el-icon-star-off" aria-hidden="true"></i>
           <span>Copyright © 2022 - {{ currentYear }} 
-            <a target="_blank" href="https://blog.aqcoder.cn" class="stats-link">
+            <a target="_blank" href="https://blog.aqcoder.cn" rel="noopener" class="stats-link">
               <i class="el-icon-link">枫叶</i>
             </a>
           </span>
-          <a target="_blank" href="https://v6.51.la/s/W8n3xjD4r3Vjfl6" class="stats-link">
+          <a target="_blank" href="https://v6.51.la/s/W8n3xjD4r3Vjfl6" rel="noopener" class="stats-link">
             <img src="https://sdk.51.la/icon/1-1.png" alt="51la统计" class="stats-icon">
           </a>
         </span>
       </div>
-    </el-footer>
+    </footer>
   </div>
 </template>
 
