@@ -12,6 +12,7 @@ const router = new Router({
   mode: 'history',
   routes: [{
     path: '/',
+    alias: '/index.html',
     component: index,
     children: [{
       path: '/',
@@ -35,7 +36,7 @@ const router = new Router({
       name: 'blog',
       redirect: '/',
     }, {
-      path: '/about',
+      path: '/about.html',
       name: 'about',
       component: about,
       meta: {
@@ -44,7 +45,7 @@ const router = new Router({
       }
     }]
   }, {
-    path: '/wallpaper/detail/:id',
+    path: '/wallpaper/detail/:regionId',
     name: 'wallpaper-detail',
     component: detail,
     props: true,

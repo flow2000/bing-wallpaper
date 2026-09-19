@@ -1,17 +1,5 @@
 <template>
   <div class="detail-container">
-    <!-- 返回按钮 -->
-    <div class="back-nav">
-      <el-button 
-        type="primary" 
-        icon="el-icon-arrow-left" 
-        @click="goBack"
-        class="back-btn"
-      >
-        返回列表
-      </el-button>
-    </div>
-    
     <!-- 壁纸详情展示 -->
     <el-card class="wallpaper-detail-card" shadow="hover" v-if="wallpaperData">
       <div class="detail-content">
@@ -70,7 +58,48 @@
           <div class="info-section">
             <h1 class="wallpaper-title">{{ wallpaperData.title }}</h1>
           </div>
-          
+
+          <!-- 图片介绍 -->
+          <div class="info-section copyright-section">
+            <h3 class="section-title">图片介绍</h3>
+            <div class="copyright-content">
+              <p class="copyright-text">{{ imageDescription }}</p>
+              <el-divider class="link-divider"></el-divider>
+              <div class="copyright-links">
+                <a
+                  v-if="wallpaperData.copyrightlink"
+                  :href="wallpaperData.copyrightlink"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="copyright-link"
+                >
+                  <i class="el-icon-link"></i>
+                  查看来源
+                </a>
+                <a
+                  :href="wallpaperData.url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="copyright-link"
+                >
+                  <i class="el-icon-picture-outline"></i>
+                  打开原图
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- 版权信息 -->
+          <div class="info-section">
+            <div class="info-item">
+              <span class="info-label">
+                <i class="el-icon-document"></i>
+                版权信息
+              </span>
+              <span class="info-value">{{ copyrightInfo }}</span>
+            </div>
+          </div>
+
           <!-- 基本信息 -->
           <div class="info-section">
             <div class="info-item">
@@ -93,36 +122,6 @@
                 当前分辨率
               </span>
               <span class="info-value highlight">{{ currentResolution }}</span>
-            </div>
-          </div>
-          
-          <!-- 版权信息 -->
-          <div class="info-section copyright-section">
-            <h3 class="section-title">版权信息</h3>
-            <div class="copyright-content">
-              <p class="copyright-text">{{ wallpaperData.copyright }}</p>
-              <el-divider class="link-divider"></el-divider>
-              <div class="copyright-links">
-                <a 
-                  v-if="wallpaperData.copyrightlink" 
-                  :href="wallpaperData.copyrightlink" 
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="copyright-link"
-                >
-                  <i class="el-icon-link"></i>
-                  查看来源
-                </a>
-                <a 
-                  :href="wallpaperData.url" 
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="copyright-link"
-                >
-                  <i class="el-icon-picture-outline"></i>
-                  打开原图
-                </a>
-              </div>
             </div>
           </div>
           
@@ -296,7 +295,20 @@ export default {
     // 地区列表页链接（返回该地区的壁纸列表）
     regionListUrl() {
       if (!this.regionCode) return '/';
-      return `/region/${this.regionCode}`;
+      return `/region/${this.regionCode}.html`;
+    },
+
+    // 从 copyright 字段提取图片介绍（去掉括号内的版权部分）
+    imageDescription() {
+      if (!this.wallpaperData || !this.wallpaperData.copyright) return '';
+      return this.wallpaperData.copyright.replace(/\s*\(©[^)]*\)\s*$/, '').trim();
+    },
+
+    // 从 copyright 字段提取版权信息（括号内的 © 部分）
+    copyrightInfo() {
+      if (!this.wallpaperData || !this.wallpaperData.copyright) return '';
+      const match = this.wallpaperData.copyright.match(/\(©[^)]*\)/);
+      return match ? match[0] : '';
     }
   },
   
@@ -306,10 +318,10 @@ export default {
   },
 
   watch: {
-    // 同一路由不同 ID 导航时（如从一个详情页跳到另一个详情页），
+    // 同一路由不同参数导航时（如从一个详情页跳到另一个详情页），
     // Vue 会复用组件实例，mounted 不会再次触发，需监听路由参数变化重新加载
-    '$route.params.id'(newId, oldId) {
-      if (newId && newId !== oldId) {
+    '$route.params.regionId'(newVal, oldVal) {
+      if (newVal && newVal !== oldVal) {
         this.loadWallpaperDetail();
         window.scrollTo(0, 0);
       }
@@ -317,33 +329,32 @@ export default {
   },
 
   methods: {
-    // 加载壁纸详情：从路由 query 读取地区，调用 /all 接口按地区+ID 获取数据
+    // 加载壁纸详情：用 limit=1 精确定位，根据 ID 估算页码直接拉取单条数据
     async loadWallpaperDetail() {
       this.loading = true;
       this.errorMessage = '';
 
-      const wallpaperId = this.$route.params.id;
-      if (!wallpaperId) {
+      // 从 regionId 参数解析地区和 ID（格式如 zh-CN-3849.html）
+      const regionId = (this.$route.params.regionId || '').replace(/\.html$/, '');
+      const match = regionId.match(/^(.+)-(\d+)$/);
+      if (!match) {
         this.errorMessage = '缺少壁纸ID参数';
         this.loading = false;
         return;
       }
 
-      // 从路由 query 读取地区（由列表页跳转时传入）
-      const region = this.$route.query.region || '';
+      const region = match[1];
+      const wallpaperId = match[2];
+      const targetId = Number(wallpaperId);
 
       try {
-        const PAGE_SIZE = 100;
-        const targetId = Number(wallpaperId);
-
-        // 构建请求参数（含地区 mkt）
         const buildParams = (page) => {
-          const p = { page, limit: PAGE_SIZE, order: 'desc' };
+          const p = { page, limit: 1, order: 'desc' };
           if (region) p.mkt = region;
           return p;
         };
 
-        // 先拉第一页，同时拿到 total 和前 100 条数据
+        // 先拉第一页拿到 total
         const firstResp = await this.$axios.get('https://api.bimg.cc/all', {
           params: buildParams(1)
         });
@@ -353,46 +364,50 @@ export default {
         }
 
         const total = firstResp.data.total || 0;
-        const firstList = firstResp.data.data || [];
+        const firstItem = (firstResp.data.data || [])[0];
 
-        // 先在第一页查找
-        let found = firstList.find(w => String(w.id) === String(wallpaperId));
-        if (found) {
-          this.setWallpaperData(found);
+        // 第一条就是目标
+        if (firstItem && String(firstItem.id) === String(wallpaperId)) {
+          this.setWallpaperData(firstItem);
           return;
         }
 
-        // 不在第一页，根据 id 连续递增特性估算目标页
+        // 根据 id 连续递增特性估算位置（desc 排序，最新 id 在前）
         const position = total - targetId + 1;
-        const estimatedPage = Math.max(2, Math.ceil(position / PAGE_SIZE));
+        if (position < 1 || position > total) {
+          this.errorMessage = '未找到该壁纸';
+          return;
+        }
 
-        const pageResp = await this.$axios.get('https://api.bimg.cc/all', {
-          params: buildParams(estimatedPage)
+        // 直接拉取估算页的单条数据
+        const resp = await this.$axios.get('https://api.bimg.cc/all', {
+          params: buildParams(position)
         });
 
-        if (pageResp.data && pageResp.data.code === 200) {
-          const list = pageResp.data.data || [];
-          found = list.find(w => String(w.id) === String(wallpaperId));
+        if (resp.data && resp.data.code === 200) {
+          const item = (resp.data.data || [])[0];
+          if (item && String(item.id) === String(wallpaperId)) {
+            this.setWallpaperData(item);
+            return;
+          }
 
-          // 若因 id 存在跳号导致估算页未命中，尝试前后各一页
-          if (!found) {
-            for (const p of [estimatedPage - 1, estimatedPage + 1]) {
-              if (p < 1) continue;
-              const resp = await this.$axios.get('https://api.bimg.cc/all', {
-                params: buildParams(p)
-              });
-              if (resp.data && resp.data.code === 200) {
-                found = (resp.data.data || []).find(w => String(w.id) === String(wallpaperId));
-                if (found) break;
+          // ID 存在跳号导致估算偏差，尝试前后各两页
+          for (const offset of [-1, 1, -2, 2]) {
+            const p = position + offset;
+            if (p < 1 || p > total) continue;
+            const adjResp = await this.$axios.get('https://api.bimg.cc/all', {
+              params: buildParams(p)
+            });
+            if (adjResp.data && adjResp.data.code === 200) {
+              const adjItem = (adjResp.data.data || [])[0];
+              if (adjItem && String(adjItem.id) === String(wallpaperId)) {
+                this.setWallpaperData(adjItem);
+                return;
               }
             }
           }
 
-          if (found) {
-            this.setWallpaperData(found);
-          } else {
-            this.errorMessage = '未找到该壁纸';
-          }
+          this.errorMessage = '未找到该壁纸';
         } else {
           this.errorMessage = '获取壁纸详情失败';
         }
@@ -417,9 +432,11 @@ export default {
       this.applyDetailSEO(wallpaper);
     },
 
-    // 解析壁纸所属地区：优先从路由 query 读取，其次从壁纸 URL 中提取
+    // 解析壁纸所属地区：优先从路由 params 读取，其次从壁纸 URL 中提取
     resolveRegion(wallpaper) {
-      let code = this.$route.query.region || '';
+      const regionId = (this.$route.params.regionId || '').replace(/\.html$/, '');
+      const match = regionId.match(/^(.+)-\d+$/);
+      let code = match ? match[1] : '';
       // 回退：从壁纸 URL 中提取地区代码（如 _ZH-CN5896237112 → ZH-CN）
       if (!code && wallpaper.url) {
         const match = wallpaper.url.match(/_([A-Z]{2}-[A-Z]{2})\d+/);
@@ -465,23 +482,14 @@ export default {
       updateSEO({
         title,
         description,
-        path: `/wallpaper/detail/${wallpaper.id}`,
+        path: `/wallpaper/detail/${this.regionCode}-${wallpaper.id}.html`,
         image: wallpaper.url,
         type: 'article',
         keywords
       });
       setWallpaperJsonLd(wallpaper, this.regionCode, this.regionName);
     },
-    
-    // 返回列表：优先返回上一页，无历史记录时返回首页
-    goBack() {
-      if (window.history.length > 1) {
-        this.$router.go(-1);
-      } else {
-        this.$router.push('/');
-      }
-    },
-    
+
     // 切换分辨率
     changeResolution(resolution) {
       this.currentResolution = resolution;
@@ -569,7 +577,7 @@ export default {
     // 复制分享链接
     copyShareLink() {
       if (!this.wallpaperData) return;
-      const shareUrl = `${window.location.origin}/wallpaper/detail/${this.wallpaperData.id}`;
+      const shareUrl = `${window.location.origin}/wallpaper/detail/${this.regionCode}-${this.wallpaperData.id}.html`;
       this.copyToClipboard(shareUrl, '分享链接已复制');
     },
 
@@ -618,19 +626,6 @@ export default {
   max-width: 1400px;
   margin: 0 auto;
   padding: 20px;
-}
-
-/* 返回导航 */
-.back-nav {
-  margin-bottom: 20px;
-}
-
-.back-btn {
-  transition: all 0.3s ease;
-}
-
-.back-btn:hover {
-  transform: translateX(-4px);
 }
 
 /* 详情卡片 */
