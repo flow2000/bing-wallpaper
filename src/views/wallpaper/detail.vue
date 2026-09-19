@@ -708,8 +708,8 @@ export default {
 }
 
 .image-actions .el-button {
-  font-size: 17px;
-  padding: 12px 26px;
+  font-size: 15px;
+  padding: 12px 24px;
 }
 
 /* 信息面板 */
@@ -733,7 +733,7 @@ export default {
 
 /* 壁纸标题 */
 .wallpaper-title {
-  font-size: 30px;
+  font-size: 26px;
   font-weight: 700;
   color: #303133;
   line-height: 1.4;
@@ -753,28 +753,28 @@ export default {
 }
 
 .info-label {
-  flex: 0 0 100px;
+  flex: 0 0 92px;
   color: #909399;
-  font-size: 17px;
+  font-size: 15px;
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
 .info-label i {
-  font-size: 18px;
+  font-size: 16px;
 }
 
 .info-value {
   flex: 1;
   color: #606266;
-  font-size: 17px;
+  font-size: 15px;
   line-height: 1.7;
 }
 
 /* 区块标题 */
 .section-title {
-  font-size: 19px;
+  font-size: 17px;
   font-weight: 600;
   color: #303133;
   margin: 0 0 18px 0;
@@ -789,7 +789,7 @@ export default {
   gap: 5px;
   color: #409eff;
   text-decoration: none;
-  font-size: 17px;
+  font-size: 15px;
   transition: color 0.3s ease;
 }
 
@@ -803,7 +803,7 @@ export default {
   flex-wrap: wrap;
   gap: 20px;
   align-items: center;
-  padding-left: 116px;
+  padding-left: 108px;
   padding-top: 10px;
 }
 
@@ -884,7 +884,7 @@ export default {
 }
 
 .recommend-title {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 600;
   color: #303133;
   margin: 0 0 20px 0;
@@ -955,7 +955,7 @@ export default {
 }
 
 .recommend-name {
-  font-size: 16px;
+  font-size: 14px;
   color: #303133;
   margin: 0 0 4px 0;
   overflow: hidden;
@@ -965,7 +965,7 @@ export default {
 }
 
 .recommend-date {
-  font-size: 15px;
+  font-size: 13px;
   color: #909399;
 }
 
