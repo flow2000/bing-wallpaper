@@ -1,13 +1,17 @@
 <template>
-  <div class="detail-container">
+  <div class="detail-root" :class="{ 'fullscreen-mode': fullscreenMode }" :style="{ backgroundImage: wallpaperData ? `url(${currentImageUrl})` : 'none' }">
+    <!-- 全屏壁纸浮层 -->
+    <div class="fullscreen-overlay" v-if="fullscreenMode" @click="toggleFullscreen"></div>
+
+    <div class="detail-container">
     <!-- 壁纸详情展示 -->
     <el-card class="wallpaper-detail-card" shadow="hover" v-if="wallpaperData">
       <div class="detail-content">
         <!-- 壁纸图片展示区域 -->
         <div class="image-showcase">
-          <div class="image-wrapper">
-            <el-image 
-              :src="currentImageUrl" 
+          <div class="image-wrapper" @click="toggleFullscreen">
+            <el-image
+              :src="currentImageUrl"
               :alt="wallpaperData.title"
               fit="contain"
               class="detail-image"
@@ -23,32 +27,49 @@
               </div>
             </el-image>
           </div>
-          
+
           <!-- 图片操作按钮 -->
           <div class="image-actions">
             <el-button-group>
-              <el-button 
-                type="primary" 
+              <el-button
+                type="primary"
                 icon="el-icon-zoom-in"
                 @click="openOriginalImage"
               >
                 查看原图
               </el-button>
-              <el-button 
-                type="success" 
+              <el-button
+                type="danger"
+                icon="el-icon-s-home"
+                @click="$router.push('/index.html')"
+              >
+                返回首页
+              </el-button>
+              <el-button
+                type="success"
                 icon="el-icon-download"
                 @click="downloadWallpaper"
               >
                 下载壁纸
               </el-button>
-              <el-button 
-                type="warning" 
+              <el-button
+                type="warning"
                 icon="el-icon-link"
                 @click="copyImageUrl"
               >
                 复制链接
               </el-button>
             </el-button-group>
+            <el-tooltip content="点击壁纸图片即可全屏查看" placement="top" :open-delay="300">
+              <el-button
+                type="info"
+                icon="el-icon-full-screen"
+                @click="toggleFullscreen"
+                class="fullscreen-btn"
+              >
+                查看全屏壁纸
+              </el-button>
+            </el-tooltip>
           </div>
         </div>
         
@@ -189,6 +210,7 @@
         </div>
       </el-card>
     </div>
+    </div>
   </div>
 </template>
 
@@ -250,7 +272,10 @@ export default {
 
       // 推荐壁纸列表
       recommendList: [],
-      recommendLoading: false
+      recommendLoading: false,
+
+      // 全屏壁纸模式
+      fullscreenMode: false
     };
   },
   
@@ -307,6 +332,10 @@ export default {
   },
 
   methods: {
+    toggleFullscreen() {
+      this.fullscreenMode = !this.fullscreenMode;
+    },
+
     // 加载壁纸详情：用 limit=1 精确定位，根据 ID 估算页码直接拉取单条数据
     async loadWallpaperDetail() {
       this.loading = true;
@@ -630,6 +659,31 @@ export default {
 </script>
 
 <style scoped>
+/* 根容器 */
+.detail-root {
+  min-height: 100vh;
+  background-attachment: fixed;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  transition: background-image 0.5s ease;
+}
+
+/* 全屏模式 */
+.detail-root.fullscreen-mode .detail-container {
+  display: none;
+}
+
+.fullscreen-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  cursor: pointer;
+}
+
 /* 容器样式 */
 .detail-container {
   max-width: 1500px;
@@ -664,6 +718,7 @@ export default {
   border-radius: 12px;
   overflow: hidden;
   margin-bottom: 20px;
+  cursor: pointer;
 }
 
 .detail-image {
@@ -699,6 +754,9 @@ export default {
 .image-actions {
   display: flex;
   justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .image-actions .el-button-group {
