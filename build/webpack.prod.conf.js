@@ -131,12 +131,8 @@ const webpackConfig = merge(baseWebpackConfig, {
         to: 'baidu_verify_codeva-1urA4GE3Sf.html'
       },
       {
-        from: path.resolve(__dirname, '../static/6176bcf09d86474a8572db3b11aeb4d0.txt'),
-        to: '6176bcf09d86474a8572db3b11aeb4d0.txt'
-      },
-      {
-        from: path.resolve(__dirname, '../static/6ab1488119a84f68a0e5c662b39729ad.txt'),
-        to: '6ab1488119a84f68a0e5c662b39729ad.txt'
+        from: path.resolve(__dirname, '../static/7fceb212b40246d69ee07027523c9f0a.txt'),
+        to: '7fceb212b40246d69ee07027523c9f0a.txt'
       }
     ])
   ]
