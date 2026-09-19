@@ -60,36 +60,38 @@
           </div>
 
           <!-- 图片介绍 -->
-          <div class="info-section copyright-section">
-            <h3 class="section-title">图片介绍</h3>
-            <div class="copyright-content">
-              <p class="copyright-text">{{ imageDescription }}</p>
-              <el-divider class="link-divider"></el-divider>
-              <div class="copyright-links">
-                <a
-                  v-if="wallpaperData.copyrightlink"
-                  :href="wallpaperData.copyrightlink"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="copyright-link"
-                >
-                  <i class="el-icon-link"></i>
-                  查看来源
-                </a>
-                <a
-                  :href="wallpaperData.url"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="copyright-link"
-                >
-                  <i class="el-icon-picture-outline"></i>
-                  打开原图
-                </a>
-              </div>
+          <div class="info-section">
+            <div class="info-item">
+              <span class="info-label">
+                <i class="el-icon-document"></i>
+                图片介绍
+              </span>
+              <span class="info-value">{{ imageDescription }}</span>
+            </div>
+            <div class="copyright-links">
+              <a
+                v-if="wallpaperData.copyrightlink"
+                :href="wallpaperData.copyrightlink"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="copyright-link"
+              >
+                <i class="el-icon-link"></i>
+                查看来源
+              </a>
+              <a
+                :href="wallpaperData.url"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="copyright-link"
+              >
+                <i class="el-icon-picture-outline"></i>
+                打开原图
+              </a>
             </div>
           </div>
 
-          <!-- 版权信息 -->
+          <!-- 版权与日期 -->
           <div class="info-section">
             <div class="info-item">
               <span class="info-label">
@@ -98,10 +100,6 @@
               </span>
               <span class="info-value">{{ copyrightInfo }}</span>
             </div>
-          </div>
-
-          <!-- 基本信息 -->
-          <div class="info-section">
             <div class="info-item">
               <span class="info-label">
                 <i class="el-icon-date"></i>
@@ -109,22 +107,8 @@
               </span>
               <span class="info-value">{{ wallpaperData.datetime }}</span>
             </div>
-            <div class="info-item">
-              <span class="info-label">
-                <i class="el-icon-document"></i>
-                图片格式
-              </span>
-              <span class="info-value">JPG</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">
-                <i class="el-icon-picture"></i>
-                当前分辨率
-              </span>
-              <span class="info-value highlight">{{ currentResolution }}</span>
-            </div>
           </div>
-          
+
           <!-- 分辨率选择 -->
           <div class="info-section">
             <h3 class="section-title">切换分辨率</h3>
@@ -141,64 +125,49 @@
               </el-button>
             </div>
           </div>
-          
-          <!-- 快捷操作 -->
-          <div class="info-section actions-section">
-            <h3 class="section-title">快捷操作</h3>
-            <div class="quick-actions">
-              <el-button 
-                type="primary" 
-                plain 
-                icon="el-icon-set-up"
-                @click="setAsDesktopBackground"
-              >
-                设为桌面壁纸
-              </el-button>
-              <el-button 
-                type="success" 
-                plain 
-                icon="el-icon-star-off"
-                @click="addToFavorites"
-              >
-                收藏此壁纸
-              </el-button>
-            </div>
-          </div>
-          
-          <!-- 分享功能 -->
-          <div class="info-section share-section">
-            <h3 class="section-title">分享给朋友</h3>
-            <div class="share-buttons">
-              <el-button 
-                circle 
-                type="success" 
-                icon="el-icon-chat-dot-round"
-                @click="shareToSocial('wechat')"
-                title="分享到微信"
-              >
-              </el-button>
-              <el-button 
-                circle 
-                type="info" 
-                icon="el-icon-chat-line-round"
-                @click="shareToSocial('weibo')"
-                title="分享到微博"
-              >
-              </el-button>
-              <el-button 
-                circle 
-                type="primary" 
-                icon="el-icon-link"
-                @click="copyShareLink"
-                title="复制分享链接"
-              >
-              </el-button>
-            </div>
-          </div>
         </div>
       </div>
     </el-card>
-    
+
+    <!-- 推荐壁纸 -->
+    <div class="recommend-section" v-if="wallpaperData && recommendList.length > 0">
+      <h2 class="recommend-title">
+        <i class="el-icon-magic-stick"></i>
+        推荐壁纸
+      </h2>
+      <el-row :gutter="20">
+        <el-col
+          v-for="item in recommendList"
+          :key="item.id"
+          :xs="12" :sm="8" :md="6" :lg="4"
+          class="recommend-col"
+        >
+          <router-link
+            :to="`/wallpaper/detail/${regionCode}-${item.id}.html`"
+            class="recommend-card"
+            target="_blank"
+          >
+            <div class="recommend-img-wrapper">
+              <el-image
+                :src="item.url.replace(/_\d+x\d+|_UHD/, '_400x240')"
+                :alt="item.title"
+                fit="cover"
+                class="recommend-img"
+              >
+                <div slot="error" class="recommend-img-error">
+                  <i class="el-icon-picture-outline"></i>
+                </div>
+              </el-image>
+            </div>
+            <div class="recommend-info">
+              <p class="recommend-name">{{ item.title }}</p>
+              <span class="recommend-date">{{ item.datetime }}</span>
+            </div>
+          </router-link>
+        </el-col>
+      </el-row>
+    </div>
+
     <!-- 加载状态 -->
     <div v-else-if="loading" class="loading-container">
       <el-card class="loading-card">
@@ -261,6 +230,7 @@ export default {
       
       // 已知分辨率配置
       resolutions: [
+        'UHD',
         '1920x1200',
         '1920x1080',
         '1080x1920',
@@ -276,7 +246,11 @@ export default {
         '400x240',
         '320x240',
         '240x320'
-      ]
+      ],
+
+      // 推荐壁纸列表
+      recommendList: [],
+      recommendLoading: false
     };
   },
   
@@ -284,11 +258,14 @@ export default {
     // 当前图片URL
     currentImageUrl() {
       if (!this.wallpaperData) return '';
-      
+
+      if (this.currentResolution === 'UHD') {
+        return this.wallpaperData.url.replace(/_\d+x\d+/, '_UHD');
+      }
       // 从URL中提取分辨率并替换
       return this.wallpaperData.url.replace(
-        /\d+x\d+/,
-        this.currentResolution
+        /_\d+x\d+|_UHD/,
+        `_${this.currentResolution}`
       );
     },
     
@@ -322,6 +299,7 @@ export default {
     // Vue 会复用组件实例，mounted 不会再次触发，需监听路由参数变化重新加载
     '$route.params.regionId'(newVal, oldVal) {
       if (newVal && newVal !== oldVal) {
+        this.recommendList = [];
         this.loadWallpaperDetail();
         window.scrollTo(0, 0);
       }
@@ -423,13 +401,44 @@ export default {
     setWallpaperData(wallpaper) {
       this.wallpaperData = wallpaper;
       if (wallpaper.url) {
-        const match = wallpaper.url.match(/(\d+)x(\d+)/);
-        if (match) {
-          this.currentResolution = `${match[1]}x${match[2]}`;
+        if (/_UHD/.test(wallpaper.url)) {
+          this.currentResolution = 'UHD';
+        } else {
+          const match = wallpaper.url.match(/(\d+)x(\d+)/);
+          if (match) {
+            this.currentResolution = `${match[1]}x${match[2]}`;
+          }
         }
       }
       this.resolveRegion(wallpaper);
       this.applyDetailSEO(wallpaper);
+      this.fetchRecommendations();
+    },
+
+    // 获取推荐壁纸：取同地区最新壁纸，排除当前壁纸
+    async fetchRecommendations() {
+      if (!this.wallpaperData) return;
+      this.recommendLoading = true;
+      try {
+        const regionId = (this.$route.params.regionId || '').replace(/\.html$/, '');
+        const match = regionId.match(/^(.+)-(\d+)$/);
+        if (!match) return;
+        const region = match[1];
+        const currentId = Number(match[2]);
+
+        const resp = await this.$axios.get('https://api.bimg.cc/all', {
+          params: { page: 1, limit: 8, order: 'desc', mkt: region }
+        });
+        if (resp.data && resp.data.code === 200) {
+          this.recommendList = (resp.data.data || [])
+            .filter(w => w.id !== currentId)
+            .slice(0, 6);
+        }
+      } catch (error) {
+        console.error('获取推荐壁纸失败:', error);
+      } finally {
+        this.recommendLoading = false;
+      }
     },
 
     // 解析壁纸所属地区：优先从路由 params 读取，其次从壁纸 URL 中提取
@@ -623,20 +632,25 @@ export default {
 <style scoped>
 /* 容器样式 */
 .detail-container {
-  max-width: 1400px;
+  max-width: 1500px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 30px;
 }
 
 /* 详情卡片 */
 .wallpaper-detail-card {
-  border-radius: 12px;
+  border-radius: 14px;
   overflow: hidden;
+}
+
+.wallpaper-detail-card .el-card__body {
+  padding: 32px;
 }
 
 .detail-content {
   display: flex;
-  gap: 32px;
+  gap: 36px;
+  align-items: flex-start;
 }
 
 /* 图片展示区域 */
@@ -654,8 +668,8 @@ export default {
 
 .detail-image {
   width: 100%;
-  min-height: 400px;
-  max-height: 600px;
+  min-height: 420px;
+  max-height: 650px;
   display: block;
 }
 
@@ -666,15 +680,15 @@ export default {
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 400px;
+  height: 420px;
   color: #909399;
-  font-size: 16px;
+  font-size: 18px;
 }
 
 .image-placeholder i,
 .image-error i {
-  font-size: 48px;
-  margin-bottom: 16px;
+  font-size: 52px;
+  margin-bottom: 18px;
 }
 
 .image-error {
@@ -685,31 +699,42 @@ export default {
 .image-actions {
   display: flex;
   justify-content: center;
-  gap: 12px;
+}
+
+.image-actions .el-button-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+}
+
+.image-actions .el-button {
+  font-size: 17px;
+  padding: 12px 26px;
 }
 
 /* 信息面板 */
 .info-panel {
-  width: 360px;
+  width: 380px;
   flex-shrink: 0;
 }
 
 /* 信息区块 */
 .info-section {
-  margin-bottom: 24px;
-  padding-bottom: 24px;
+  margin-bottom: 28px;
+  padding-bottom: 28px;
   border-bottom: 1px solid #ebeef5;
 }
 
 .info-section:last-child {
   border-bottom: none;
   margin-bottom: 0;
+  padding-bottom: 0;
 }
 
 /* 壁纸标题 */
 .wallpaper-title {
-  font-size: 24px;
-  font-weight: 600;
+  font-size: 30px;
+  font-weight: 700;
   color: #303133;
   line-height: 1.4;
   margin: 0;
@@ -718,72 +743,53 @@ export default {
 /* 信息项 */
 .info-item {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  align-items: baseline;
+  gap: 16px;
   padding: 12px 0;
-  border-bottom: 1px dashed #ebeef5;
 }
 
-.info-item:last-child {
-  border-bottom: none;
+.info-item + .info-item {
+  border-top: 1px dashed #ebeef5;
 }
 
 .info-label {
-  flex: 0 0 96px;
+  flex: 0 0 100px;
   color: #909399;
-  font-size: 14px;
+  font-size: 17px;
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
 .info-label i {
-  font-size: 16px;
+  font-size: 18px;
 }
 
 .info-value {
   flex: 1;
   color: #606266;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.info-value.highlight {
-  color: #409eff;
-  font-size: 16px;
+  font-size: 17px;
+  line-height: 1.7;
 }
 
 /* 区块标题 */
 .section-title {
-  font-size: 16px;
+  font-size: 19px;
   font-weight: 600;
   color: #303133;
-  margin: 0 0 16px 0;
+  margin: 0 0 18px 0;
   padding-left: 12px;
   border-left: 4px solid #409eff;
 }
 
-/* 版权信息 */
-.copyright-content {
-  background: #f8f9fa;
-  padding: 16px;
-  border-radius: 8px;
-}
-
-.copyright-text {
-  font-size: 14px;
-  color: #606266;
-  line-height: 1.6;
-  margin: 0 0 12px 0;
-}
-
+/* 版权链接 */
 .copyright-link {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   color: #409eff;
   text-decoration: none;
-  font-size: 14px;
+  font-size: 17px;
   transition: color 0.3s ease;
 }
 
@@ -791,29 +797,25 @@ export default {
   color: #66b1ff;
 }
 
-/* 链接分隔符 */
-.link-divider {
-  margin: 12px 0;
-  border-top: 1px dashed #dcdfe6;
-}
-
 /* 版权链接容器 */
 .copyright-links {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 20px;
   align-items: center;
+  padding-left: 116px;
+  padding-top: 10px;
 }
 
 /* 分辨率网格 */
 .resolution-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
 }
 
 .resolution-btn {
-  width: 88px;
+  width: 96px;
   flex: 0 0 auto;
   text-align: center;
   margin: 0 !important;
@@ -823,34 +825,6 @@ export default {
   background: #409eff;
   color: #fff;
   border-color: #409eff;
-}
-
-/* 快捷操作 */
-.quick-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  max-width: 320px;
-}
-
-.quick-actions .el-button {
-  width: 100%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  margin: 0 !important;
-}
-
-/* 分享按钮 */
-.share-buttons {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.share-buttons .el-button {
-  margin: 0 !important;
 }
 
 /* 加载状态 */
@@ -904,16 +878,107 @@ export default {
   margin: 0 0 20px 0;
 }
 
+/* 推荐壁纸 */
+.recommend-section {
+  margin-top: 36px;
+}
+
+.recommend-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #303133;
+  margin: 0 0 20px 0;
+  padding-left: 12px;
+  border-left: 4px solid #409eff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.recommend-title i {
+  color: #409eff;
+}
+
+.recommend-col {
+  margin-bottom: 20px;
+}
+
+.recommend-card {
+  display: block;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  text-decoration: none;
+  color: inherit;
+}
+
+.recommend-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.recommend-img-wrapper {
+  width: 100%;
+  padding-top: 56.25%;
+  position: relative;
+  overflow: hidden;
+  background: #f5f7fa;
+}
+
+.recommend-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.4s ease;
+}
+
+.recommend-card:hover .recommend-img {
+  transform: scale(1.06);
+}
+
+.recommend-img-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: #c0c4cc;
+  font-size: 32px;
+}
+
+.recommend-info {
+  padding: 12px 14px;
+}
+
+.recommend-name {
+  font-size: 16px;
+  color: #303133;
+  margin: 0 0 4px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.recommend-date {
+  font-size: 15px;
+  color: #909399;
+}
+
 /* 响应式设计 */
 @media screen and (max-width: 1024px) {
   .detail-content {
     flex-direction: column;
   }
-  
+
   .info-panel {
     width: 100%;
   }
-  
+
   .image-wrapper {
     min-height: 300px;
   }
@@ -921,29 +986,34 @@ export default {
 
 @media screen and (max-width: 768px) {
   .detail-container {
-    padding: 12px;
+    padding: 16px;
   }
-  
+
+  .wallpaper-detail-card .el-card__body {
+    padding: 20px;
+  }
+
   .wallpaper-title {
     font-size: 20px;
   }
-  
+
   .resolution-grid {
     justify-content: center;
   }
-  
+
   .image-actions {
     flex-direction: column;
   }
-  
+
   .image-actions .el-button-group {
     display: flex;
     flex-direction: column;
     gap: 8px;
   }
-  
-  .share-buttons {
-    justify-content: center;
+
+  .copyright-links {
+    padding-left: 0;
+    padding-top: 8px;
   }
 }
 </style>
