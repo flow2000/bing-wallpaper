@@ -3,7 +3,7 @@
  * 用于 Vue SPA 中根据路由/内容实时更新 head 信息，提升搜索引擎收录
  */
 
-const SITE_URL = 'https://www.bimg.cc';
+const SITE_URL = 'https://bimg.cc';
 const SITE_NAME = '必应壁纸';
 const DEFAULT_KEYWORDS =
   '必应壁纸,bing壁纸,必应每日壁纸,必应高清壁纸下载,微软Bing壁纸,Bing Wallpaper,高清壁纸,电脑壁纸,4K壁纸,壁纸下载';

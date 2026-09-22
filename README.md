@@ -6,7 +6,7 @@
 
 ## 项目地址
 
-在线预览：[https://www.bimg.cc](https://www.bimg.cc)
+在线预览：[https://bimg.cc](https://bimg.cc)
 
 ## 功能特性
 

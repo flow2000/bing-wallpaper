@@ -194,7 +194,7 @@
       <el-card class="loading-card">
         <div class="loading-content">
           <i class="el-icon-loading loading-icon"></i>
-          <p class="loading-text">正在加载壁纸详情...</p>
+          <h1 class="loading-text">正在加载壁纸详情...</h1>
         </div>
       </el-card>
     </div>
@@ -204,7 +204,7 @@
       <el-card class="error-card">
         <div class="error-content">
           <i class="el-icon-warning-outline error-icon"></i>
-          <h2 class="error-title">加载失败</h2>
+          <h1 class="error-title">加载失败</h1>
           <p class="error-message">{{ errorMessage }}</p>
           <el-button type="primary" @click="retryLoad">重新加载</el-button>
         </div>

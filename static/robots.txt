@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /api/
 
-Sitemap: https://www.bimg.cc/sitemap.xml
+Sitemap: https://bimg.cc/sitemap.xml
