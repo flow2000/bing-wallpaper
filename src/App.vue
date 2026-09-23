@@ -2,8 +2,8 @@
   <div>
     <div v-if="fatalError" class="fatal-error">
       <i class="el-icon-warning"></i>
-      <p>页面加载出现问题，请刷新重试</p>
-      <el-button type="primary" size="small" @click="recoverError">刷新页面</el-button>
+      <p>{{ $t('common.fatalError') }}</p>
+      <el-button type="primary" size="small" @click="recoverError">{{ $t('common.refresh') }}</el-button>
     </div>
     <router-view v-else></router-view>
   </div>
@@ -18,7 +18,7 @@
       };
     },
     errorCaptured(err, vm, info) {
-      console.error('全局错误捕获:', err, info);
+      console.error('Error captured:', err, info);
       this.fatalError = true;
       return false;
     },
@@ -53,20 +53,17 @@
 </style>
 
 <style>
-  /* 全局样式 */
   * {
     margin: 0px;
     padding: 0px;
   }
 
-  /* el-main样式 */
   .el-main {
     padding: 1px;
     margin: 0;
     overflow: hidden;
   }
 
-  /* 浏览器滚动条样式 */
   ::-webkit-scrollbar {
     width: 5px;
     height: 1px;
@@ -83,14 +80,12 @@
     border-radius: 5px;
   }
 
-  /* 应用容器 */
   .app-container {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
   }
 
-  /* 底部样式 */
   .site-footer {
     margin-top: auto;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -149,7 +144,6 @@
     margin: 0;
   }
 
-  /* 移动端适配 */
   @media screen and (max-width: 768px) {
     .footer-stats {
       flex-direction: column;

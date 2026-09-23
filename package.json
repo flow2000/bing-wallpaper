@@ -15,6 +15,7 @@
     "file-saver": "^2.0.5",
     "jszip": "^3.10.1",
     "vue": "^2.5.2",
+    "vue-i18n": "^8.28.2",
     "vue-router": "^3.0.1"
   },
   "devDependencies": {

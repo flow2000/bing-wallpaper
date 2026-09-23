@@ -4,14 +4,14 @@
     <header class="header" role="banner">
       <div class="header-content">
         <div class="logo-section">
-          <a href="/index.html" class="logo-link" @click.prevent="refreshPage" aria-label="必应壁纸首页">
+          <a href="/index.html" class="logo-link" @click.prevent="refreshPage" :aria-label="$t('common.bingWallpaper')">
             <i class="iconfont icon-Bing" aria-hidden="true"></i>
-            <span class="logo-text">必应壁纸</span>
+            <span class="logo-text">{{ $t('common.bingWallpaper') }}</span>
           </a>
         </div>
         
         <!-- 桌面端菜单 -->
-        <nav class="desktop-menu" role="navigation" aria-label="主导航">
+        <nav class="desktop-menu" role="navigation" :aria-label="$t('common.bingWallpaper')">
           <el-menu 
             :default-active="activeIndex" 
             mode="horizontal" 
@@ -21,45 +21,65 @@
           >
             <el-menu-item index="/index.html">
               <i class="iconfont icon-home" aria-hidden="true"></i>
-              <span slot="title">首页</span>
+              <span slot="title">{{ $t('common.home') }}</span>
             </el-menu-item>
             
             <el-menu-item index="/about.html">
               <i class="iconfont icon-guanyu" aria-hidden="true"></i>
-              <span slot="title">关于</span>
+              <span slot="title">{{ $t('common.about') }}</span>
             </el-menu-item>
             
             <el-menu-item index="/blog">
               <a href="https://blog.aqcoder.cn" target="_blank" rel="noopener" class="external-link">
                 <i class="iconfont icon-bokeyuan" aria-hidden="true"></i>
-                <span slot="title">博客</span>
+                <span slot="title">{{ $t('common.blog') }}</span>
               </a>
             </el-menu-item>
           </el-menu>
         </nav>
         
-        <!-- 移动端菜单按钮 -->
-        <el-dropdown trigger="click" class="mobile-menu-dropdown" @command="handleMobileMenuCommand">
-          <span class="el-dropdown-link" tabindex="0" aria-label="打开菜单">
-            <i class="el-icon-menu" aria-hidden="true"></i>
-          </span>
-          <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item command="/index.html">
-              <i class="iconfont icon-home" aria-hidden="true"></i>
-              首页
-            </el-dropdown-item>
-            <el-dropdown-item command="/about.html">
-              <i class="iconfont icon-guanyu" aria-hidden="true"></i>
-              关于
-            </el-dropdown-item>
-            <el-dropdown-item>
-              <a href="https://blog.aqcoder.cn" target="_blank" rel="noopener" class="external-link">
-                <i class="iconfont icon-bokeyuan" aria-hidden="true"></i>
-                博客
-              </a>
-            </el-dropdown-item>
-          </el-dropdown-menu>
-        </el-dropdown>
+        <!-- 语言切换 + 移动端菜单 -->
+        <div class="header-right">
+          <!-- 语言切换 -->
+          <el-dropdown trigger="click" class="lang-dropdown" @command="handleLangChange">
+            <span class="lang-dropdown-link">
+              <i class="el-icon-earth" aria-hidden="true"></i>
+              <span class="lang-label">{{ currentLangLabel }}</span>
+              <i class="el-icon-arrow-down el-icon--right"></i>
+            </span>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item command="zh-CN" :class="{ 'is-active': currentLocale === 'zh-CN' }">
+                中文
+              </el-dropdown-item>
+              <el-dropdown-item command="en-US" :class="{ 'is-active': currentLocale === 'en-US' }">
+                English
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
+
+          <!-- 移动端菜单按钮 -->
+          <el-dropdown trigger="click" class="mobile-menu-dropdown" @command="handleMobileMenuCommand">
+            <span class="el-dropdown-link" tabindex="0" :aria-label="$t('common.openMenu')">
+              <i class="el-icon-menu" aria-hidden="true"></i>
+            </span>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item command="/index.html">
+                <i class="iconfont icon-home" aria-hidden="true"></i>
+                {{ $t('common.home') }}
+              </el-dropdown-item>
+              <el-dropdown-item command="/about.html">
+                <i class="iconfont icon-guanyu" aria-hidden="true"></i>
+                {{ $t('common.about') }}
+              </el-dropdown-item>
+              <el-dropdown-item>
+                <a href="https://blog.aqcoder.cn" target="_blank" rel="noopener" class="external-link">
+                  <i class="iconfont icon-bokeyuan" aria-hidden="true"></i>
+                  {{ $t('common.blog') }}
+                </a>
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
+        </div>
       </div>
     </header>
     
@@ -73,23 +93,23 @@
       <div class="footer-content">
         <span class="footer-item">
           <i class="el-icon-picture" aria-hidden="true"></i>
-          <span>本站所有图片均来自必应搜索，仅供学习和个人使用</span>
+          <span>{{ $t('common.copyright') }}</span>
         </span>
         <span class="divider" aria-hidden="true">|</span>
         <span class="footer-item">
           <i class="el-icon-user" aria-hidden="true"></i>
-          <span>您是本站第 <span id="busuanzi_value_site_uv" class="highlight">{{ visitorCount }}</span> 个小伙伴</span>
+          <span v-html="$t('common.visitorCount', { count: visitorCountHtml })"></span>
         </span>
         <span class="divider" aria-hidden="true">|</span>
         <span class="footer-item">
           <i class="el-icon-star-off" aria-hidden="true"></i>
-          <span>Copyright © 2022 - {{ currentYear }} 
+          <span>{{ $t('common.footerCopyright', { year: currentYear }) }}
             <a target="_blank" href="https://blog.aqcoder.cn" rel="noopener" class="stats-link">
               <i class="el-icon-link">枫叶</i>
             </a>
           </span>
           <a target="_blank" href="https://v6.51.la/s/W8n3xjD4r3Vjfl6" rel="noopener" class="stats-link">
-            <img src="https://sdk.51.la/icon/1-1.png" alt="51la统计" class="stats-icon">
+            <img src="https://sdk.51.la/icon/1-1.png" alt="51la" class="stats-icon">
           </a>
         </span>
       </div>
@@ -98,33 +118,33 @@
 </template>
 
 <script>
+import { setLocale, getLocale } from '@/locale'
+
 export default {
   name: 'App',
   data() {
     return {
       activeIndex: '/',
       currentYear: new Date().getFullYear(),
-      visitorCount: '---',
-      // 地区选项配置
-      regionOptions: [
-        { value: 'de-DE', label: '德国' },
-        { value: 'en-CA', label: '加拿大' },
-        { value: 'en-GB', label: '英国' },
-        { value: 'en-IN', label: '印度' },
-        { value: 'en-US', label: '美国' },
-        { value: 'fr-FR', label: '法国' },
-        { value: 'it-IT', label: '意大利' },
-        { value: 'ja-JP', label: '日本' },
-        { value: 'zh-CN', label: '中国' }
-      ]
+      visitorCount: '---'
     };
+  },
+  computed: {
+    currentLocale() {
+      return this.$i18n.locale
+    },
+    currentLangLabel() {
+      return this.currentLocale === 'zh-CN' ? '中文' : 'EN'
+    },
+    visitorCountHtml() {
+      return '<span id="busuanzi_value_site_uv" class="highlight">' + this.visitorCount + '</span>'
+    }
   },
   mounted() {
     this.initVisitorCount();
   },
   methods: {
     handleSelect(key, keyPath) {
-      console.log('导航选择:', key, keyPath);
       if (key !== this.$route.path) {
         this.$router.push(key);
       }
@@ -136,15 +156,17 @@ export default {
       }
     },
     
+    handleLangChange(lang) {
+      setLocale(lang)
+    },
+    
     refreshPage() {
       window.location.reload();
     },
     
     initVisitorCount() {
-      // 尝试获取访客数量
       try {
         if (document.getElementById('busuanzi_value_site_uv')) {
-          // 等待 busuanzi 脚本加载
           const checkBusuanzi = setInterval(() => {
             if (window._hmt) {
               clearInterval(checkBusuanzi);
@@ -152,7 +174,7 @@ export default {
           }, 1000);
         }
       } catch (error) {
-        console.log('访客统计加载中...');
+        // visitor count loading
       }
     }
   }
@@ -172,6 +194,7 @@ html, body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: #f5f7fa;
+  overflow-x: hidden;
 }
 
 .app-container {
@@ -279,6 +302,49 @@ html, body {
 .external-link {
   color: inherit;
   text-decoration: none;
+}
+
+/* Header right section */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Language switcher */
+.lang-dropdown {
+  cursor: pointer;
+}
+
+.lang-dropdown-link {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.lang-dropdown-link:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.lang-dropdown-link .el-icon-earth {
+  font-size: 18px;
+}
+
+.lang-label {
+  font-size: 13px;
+}
+
+.lang-dropdown-menu .el-dropdown-menu__item.is-active {
+  color: #667eea;
+  font-weight: 600;
 }
 
 /* 移动端菜单样式 */
@@ -433,6 +499,10 @@ html, body {
     display: flex;
     align-items: center;
   }
+
+  .main-content {
+    padding: 8px;
+  }
   
   .logo-section {
     margin-right: 8px;
@@ -452,6 +522,14 @@ html, body {
   .el-dropdown-link {
     font-size: 20px;
     padding: 6px;
+  }
+
+  .lang-label {
+    display: none;
+  }
+
+  .lang-dropdown-link {
+    padding: 8px;
   }
   
   .footer-content {
@@ -474,6 +552,10 @@ html, body {
 @media screen and (max-width: 375px) {
   .header-content {
     padding: 0 6px;
+  }
+
+  .main-content {
+    padding: 6px;
   }
   
   .logo-link .icon-Bing {
