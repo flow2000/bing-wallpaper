@@ -1,0 +1,55 @@
+permissions:
+  contents: write
+name: generate-sitemap
+
+on:
+  schedule:
+    # 每天各时区 00:12（比 bing-wallpaper-api-push 对应时区的 00:02 迟 10 分钟）
+    - cron: '12 0 * * *'
+      timezone: Asia/Shanghai
+    - cron: '12 0 * * *'
+      timezone: Asia/Tokyo
+    - cron: '12 0 * * *'
+      timezone: Europe/Berlin
+    - cron: '12 0 * * *'
+      timezone: Europe/London
+    - cron: '12 0 * * *'
+      timezone: Europe/Paris
+    - cron: '12 0 * * *'
+      timezone: Europe/Rome
+    - cron: '12 0 * * *'
+      timezone: America/Toronto
+    - cron: '12 0 * * *'
+      timezone: America/Los_Angeles
+    - cron: '12 0 * * *'
+      timezone: Asia/Kolkata
+  workflow_dispatch:
+
+jobs:
+  generate-sitemap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Generate sitemap.xml
+        run: |
+          python scripts/generate_sitemap.py
+
+      - name: Commit sitemap.xml
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add static/sitemap.xml
+          git diff --quiet && git diff --staged --quiet || git commit -m "chore: auto-update sitemap.xml"
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref_name }}
