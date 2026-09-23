@@ -325,7 +325,26 @@ export default {
       this.fullscreenMode = !this.fullscreenMode;
     },
 
+    // 校验地区代码是否有效
+    isValidRegion(code) {
+      if (!code) return false;
+      const lowerKey = code.toLowerCase();
+      return Object.keys(REGION_KEY_MAP).some(k => k.toLowerCase() === lowerKey);
+    },
+
+    // 获取规范化的地区代码（匹配到则返回标准格式，否则返回空字符串）
+    getNormalizedRegion(code) {
+      if (!code) return '';
+      const lowerKey = code.toLowerCase();
+      const foundKey = Object.keys(REGION_KEY_MAP).find(k => k.toLowerCase() === lowerKey);
+      return foundKey || '';
+    },
+
     async loadWallpaperDetail() {
+      // 防止重复调用导致的竞态问题
+      if (this._loadingDetail) return;
+      this._loadingDetail = true;
+
       this.loading = true;
       this.errorMessage = '';
 
@@ -334,16 +353,19 @@ export default {
       if (!match) {
         this.errorMessage = this.$t('detail.missingId');
         this.loading = false;
+        this._loadingDetail = false;
         return;
       }
 
-      const region = match[1];
+      const rawRegion = match[1];
       const wallpaperId = match[2];
       const targetId = Number(wallpaperId);
+      // 校验并规范化地区代码，无效则不传 mkt 参数（API 不带 mkt 也能正常返回数据）
+      const region = this.getNormalizedRegion(rawRegion);
 
       try {
         const buildParams = (page) => {
-          const p = { page, limit: 1, order: 'desc' };
+          const p = { page: Math.max(1, parseInt(page, 10) || 1), limit: 1, order: 'desc' };
           if (region) p.mkt = region;
           return p;
         };
@@ -353,7 +375,20 @@ export default {
         });
 
         if (!firstResp.data || firstResp.data.code !== 200) {
-          throw new Error((firstResp.data && firstResp.data.msg) || this.$t('detail.fetchDetailFailed'));
+          const errMsg = (firstResp.data && firstResp.data.msg) || '';
+          // 如果是参数错误且带了地区，尝试不带地区重新请求一次
+          if (region && errMsg === '请求参数错误') {
+            const fallbackResp = await this.$axios.get('https://api.bimg.cc/all', {
+              params: { page: 1, limit: 1, order: 'desc' }
+            });
+            if (fallbackResp.data && fallbackResp.data.code === 200) {
+              firstResp.data = fallbackResp.data;
+            } else {
+              throw new Error(this.$t('detail.fetchDetailFailed'));
+            }
+          } else {
+            throw new Error(this.$t('detail.fetchDetailFailed'));
+          }
         }
 
         const total = firstResp.data.total || 0;
@@ -405,6 +440,7 @@ export default {
         this.errorMessage = error.message || this.$t('detail.networkError');
       } finally {
         this.loading = false;
+        this._loadingDetail = false;
       }
     },
 
@@ -432,12 +468,15 @@ export default {
         const regionId = (this.$route.params.regionId || '').replace(/\.html$/, '');
         const match = regionId.match(/^(.+)-(\d+)$/);
         if (!match) return;
-        const region = match[1];
+        const rawRegion = match[1];
         const currentId = Number(match[2]);
+        // 校验并规范化地区代码
+        const region = this.getNormalizedRegion(rawRegion);
 
-        const resp = await this.$axios.get('https://api.bimg.cc/all', {
-          params: { page: 1, limit: 8, order: 'desc', mkt: region }
-        });
+        const params = { page: 1, limit: 8, order: 'desc' };
+        if (region) params.mkt = region;
+
+        const resp = await this.$axios.get('https://api.bimg.cc/all', { params });
         if (resp.data && resp.data.code === 200) {
           this.recommendList = (resp.data.data || [])
             .filter(w => w.id !== currentId)
