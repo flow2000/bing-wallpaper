@@ -9,7 +9,7 @@
       <div class="detail-content">
         <!-- 壁纸图片展示区域 -->
         <div class="image-showcase">
-          <div class="image-wrapper" @click="toggleFullscreen">
+          <div class="image-wrapper" @click="toggleFullscreen" :title="wallpaperData.title + (wallpaperData.copyright ? '——' + wallpaperData.copyright : '')">
             <el-image
               :src="currentImageUrl"
               :alt="wallpaperData.title"
@@ -19,11 +19,11 @@
             >
               <div slot="placeholder" class="image-placeholder">
                 <i class="el-icon-loading"></i>
-                <span>正在加载图片...</span>
+                <span>{{ $t('detail.loadingImage') }}</span>
               </div>
               <div slot="error" class="image-error">
                 <i class="el-icon-picture-outline"></i>
-                <span>图片加载失败</span>
+                <span>{{ $t('detail.imageLoadFailed') }}</span>
               </div>
             </el-image>
           </div>
@@ -36,38 +36,38 @@
                 icon="el-icon-zoom-in"
                 @click="openOriginalImage"
               >
-                查看原图
+                {{ $t('detail.viewOriginal') }}
               </el-button>
               <el-button
                 type="danger"
                 icon="el-icon-s-home"
                 @click="$router.push('/index.html')"
               >
-                返回首页
+                {{ $t('detail.backHome') }}
               </el-button>
               <el-button
                 type="success"
                 icon="el-icon-download"
                 @click="downloadWallpaper"
               >
-                下载壁纸
+                {{ $t('detail.downloadWallpaper') }}
               </el-button>
               <el-button
                 type="warning"
                 icon="el-icon-link"
                 @click="copyImageUrl"
               >
-                复制链接
+                {{ $t('detail.copyLink') }}
               </el-button>
             </el-button-group>
-            <el-tooltip content="点击壁纸图片即可全屏查看" placement="top" :open-delay="300">
+            <el-tooltip :content="$t('detail.fullscreenTooltip')" placement="top" :open-delay="300">
               <el-button
                 type="info"
                 icon="el-icon-full-screen"
                 @click="toggleFullscreen"
                 class="fullscreen-btn"
               >
-                查看全屏壁纸
+                {{ $t('detail.viewFullscreen') }}
               </el-button>
             </el-tooltip>
           </div>
@@ -85,7 +85,7 @@
             <div class="info-item">
               <span class="info-label">
                 <i class="el-icon-document"></i>
-                图片介绍
+                {{ $t('detail.imageDescription') }}
               </span>
               <span class="info-value">{{ imageDescription }}</span>
             </div>
@@ -98,7 +98,7 @@
                 class="copyright-link"
               >
                 <i class="el-icon-link"></i>
-                查看来源
+                {{ $t('detail.viewSource') }}
               </a>
               <a
                 :href="wallpaperData.url"
@@ -107,7 +107,7 @@
                 class="copyright-link"
               >
                 <i class="el-icon-picture-outline"></i>
-                打开原图
+                {{ $t('detail.openOriginal') }}
               </a>
             </div>
           </div>
@@ -117,14 +117,14 @@
             <div class="info-item">
               <span class="info-label">
                 <i class="el-icon-document"></i>
-                版权信息
+                {{ $t('detail.copyrightInfo') }}
               </span>
               <span class="info-value">{{ copyrightInfo }}</span>
             </div>
             <div class="info-item">
               <span class="info-label">
                 <i class="el-icon-date"></i>
-                发布日期
+                {{ $t('detail.publishDate') }}
               </span>
               <span class="info-value">{{ wallpaperData.datetime }}</span>
             </div>
@@ -132,7 +132,7 @@
 
           <!-- 分辨率选择 -->
           <div class="info-section">
-            <h3 class="section-title">切换分辨率</h3>
+            <h3 class="section-title">{{ $t('detail.switchResolution') }}</h3>
             <div class="resolution-grid">
               <el-button
                 v-for="res in resolutions"
@@ -154,7 +154,7 @@
     <div class="recommend-section" v-if="wallpaperData && recommendList.length > 0">
       <h2 class="recommend-title">
         <i class="el-icon-magic-stick"></i>
-        推荐壁纸
+        {{ $t('detail.recommended') }}
       </h2>
       <el-row :gutter="20">
         <el-col
@@ -194,7 +194,7 @@
       <el-card class="loading-card">
         <div class="loading-content">
           <i class="el-icon-loading loading-icon"></i>
-          <h1 class="loading-text">正在加载壁纸详情...</h1>
+          <h1 class="loading-text">{{ $t('detail.loadingDetail') }}</h1>
         </div>
       </el-card>
     </div>
@@ -204,9 +204,9 @@
       <el-card class="error-card">
         <div class="error-content">
           <i class="el-icon-warning-outline error-icon"></i>
-          <h1 class="error-title">加载失败</h1>
+          <h1 class="error-title">{{ $t('detail.loadFailed') }}</h1>
           <p class="error-message">{{ errorMessage }}</p>
-          <el-button type="primary" @click="retryLoad">重新加载</el-button>
+          <el-button type="primary" @click="retryLoad">{{ $t('detail.reload') }}</el-button>
         </div>
       </el-card>
     </div>
@@ -215,42 +215,35 @@
 </template>
 
 <script>
-import { updateSEO, setWallpaperJsonLd } from '@/utils/seo';
+import { updateSEO, setWallpaperJsonLd } from '@/utils/seo'
+
+const REGION_KEY_MAP = {
+  'zh-CN': 'common.regionChina',
+  'de-DE': 'common.regionGermany',
+  'en-CA': 'common.regionCanada',
+  'en-GB': 'common.regionUK',
+  'en-IN': 'common.regionIndia',
+  'en-US': 'common.regionUS',
+  'fr-FR': 'common.regionFrance',
+  'it-IT': 'common.regionItaly',
+  'ja-JP': 'common.regionJapan'
+}
 
 export default {
   name: 'WallpaperDetail',
   data() {
     return {
-      // 壁纸数据
       wallpaperData: null,
       
-      // 加载状态
       loading: true,
       
-      // 错误信息
       errorMessage: '',
       
-      // 当前分辨率
       currentResolution: '1920x1080',
       
-      // 壁纸所属地区
       regionCode: '',
       regionName: '',
       
-      // 地区代码与名称映射
-      regionMap: {
-        'zh-CN': '中国',
-        'de-DE': '德国',
-        'en-CA': '加拿大',
-        'en-GB': '英国',
-        'en-IN': '印度',
-        'en-US': '美国',
-        'fr-FR': '法国',
-        'it-IT': '意大利',
-        'ja-JP': '日本'
-      },
-      
-      // 已知分辨率配置
       resolutions: [
         'UHD',
         '1920x1200',
@@ -270,43 +263,36 @@ export default {
         '240x320'
       ],
 
-      // 推荐壁纸列表
       recommendList: [],
       recommendLoading: false,
 
-      // 全屏壁纸模式
       fullscreenMode: false
     };
   },
   
   computed: {
-    // 当前图片URL
     currentImageUrl() {
       if (!this.wallpaperData) return '';
 
       if (this.currentResolution === 'UHD') {
         return this.wallpaperData.url.replace(/_\d+x\d+/, '_UHD');
       }
-      // 从URL中提取分辨率并替换
       return this.wallpaperData.url.replace(
         /_\d+x\d+|_UHD/,
         `_${this.currentResolution}`
       );
     },
     
-    // 地区列表页链接（返回该地区的壁纸列表）
     regionListUrl() {
       if (!this.regionCode) return '/';
       return `/region/${this.regionCode}.html`;
     },
 
-    // 从 copyright 字段提取图片介绍（去掉括号内的版权部分）
     imageDescription() {
       if (!this.wallpaperData || !this.wallpaperData.copyright) return '';
       return this.wallpaperData.copyright.replace(/\s*\(©[^)]*\)\s*$/, '').trim();
     },
 
-    // 从 copyright 字段提取版权信息（括号内的 © 部分）
     copyrightInfo() {
       if (!this.wallpaperData || !this.wallpaperData.copyright) return '';
       const match = this.wallpaperData.copyright.match(/\(©[^)]*\)/);
@@ -320,8 +306,6 @@ export default {
   },
 
   watch: {
-    // 同一路由不同参数导航时（如从一个详情页跳到另一个详情页），
-    // Vue 会复用组件实例，mounted 不会再次触发，需监听路由参数变化重新加载
     '$route.params.regionId'(newVal, oldVal) {
       if (newVal && newVal !== oldVal) {
         this.recommendList = [];
@@ -332,20 +316,23 @@ export default {
   },
 
   methods: {
+    getRegionName(code) {
+      const key = REGION_KEY_MAP[code]
+      return key ? this.$t(key) : ''
+    },
+
     toggleFullscreen() {
       this.fullscreenMode = !this.fullscreenMode;
     },
 
-    // 加载壁纸详情：用 limit=1 精确定位，根据 ID 估算页码直接拉取单条数据
     async loadWallpaperDetail() {
       this.loading = true;
       this.errorMessage = '';
 
-      // 从 regionId 参数解析地区和 ID（格式如 zh-CN-3849.html）
       const regionId = (this.$route.params.regionId || '').replace(/\.html$/, '');
       const match = regionId.match(/^(.+)-(\d+)$/);
       if (!match) {
-        this.errorMessage = '缺少壁纸ID参数';
+        this.errorMessage = this.$t('detail.missingId');
         this.loading = false;
         return;
       }
@@ -361,32 +348,28 @@ export default {
           return p;
         };
 
-        // 先拉第一页拿到 total
         const firstResp = await this.$axios.get('https://api.bimg.cc/all', {
           params: buildParams(1)
         });
 
         if (!firstResp.data || firstResp.data.code !== 200) {
-          throw new Error((firstResp.data && firstResp.data.msg) || '获取壁纸详情失败');
+          throw new Error((firstResp.data && firstResp.data.msg) || this.$t('detail.fetchDetailFailed'));
         }
 
         const total = firstResp.data.total || 0;
         const firstItem = (firstResp.data.data || [])[0];
 
-        // 第一条就是目标
         if (firstItem && String(firstItem.id) === String(wallpaperId)) {
           this.setWallpaperData(firstItem);
           return;
         }
 
-        // 根据 id 连续递增特性估算位置（desc 排序，最新 id 在前）
         const position = total - targetId + 1;
         if (position < 1 || position > total) {
-          this.errorMessage = '未找到该壁纸';
+          this.errorMessage = this.$t('detail.notFound');
           return;
         }
 
-        // 直接拉取估算页的单条数据
         const resp = await this.$axios.get('https://api.bimg.cc/all', {
           params: buildParams(position)
         });
@@ -398,7 +381,6 @@ export default {
             return;
           }
 
-          // ID 存在跳号导致估算偏差，尝试前后各两页
           for (const offset of [-1, 1, -2, 2]) {
             const p = position + offset;
             if (p < 1 || p > total) continue;
@@ -414,19 +396,18 @@ export default {
             }
           }
 
-          this.errorMessage = '未找到该壁纸';
+          this.errorMessage = this.$t('detail.notFound');
         } else {
-          this.errorMessage = '获取壁纸详情失败';
+          this.errorMessage = this.$t('detail.fetchDetailFailed');
         }
       } catch (error) {
-        console.error('加载壁纸详情失败:', error);
-        this.errorMessage = error.message || '网络连接异常，请检查网络后重试';
+        console.error('Load wallpaper detail failed:', error);
+        this.errorMessage = error.message || this.$t('detail.networkError');
       } finally {
         this.loading = false;
       }
     },
 
-    // 设置壁纸数据并更新分辨率、地区与 SEO
     setWallpaperData(wallpaper) {
       this.wallpaperData = wallpaper;
       if (wallpaper.url) {
@@ -444,7 +425,6 @@ export default {
       this.fetchRecommendations();
     },
 
-    // 获取推荐壁纸：取同地区最新壁纸，排除当前壁纸
     async fetchRecommendations() {
       if (!this.wallpaperData) return;
       this.recommendLoading = true;
@@ -464,33 +444,29 @@ export default {
             .slice(0, 6);
         }
       } catch (error) {
-        console.error('获取推荐壁纸失败:', error);
+        console.error('Fetch recommendations failed:', error);
       } finally {
         this.recommendLoading = false;
       }
     },
 
-    // 解析壁纸所属地区：优先从路由 params 读取，其次从壁纸 URL 中提取
     resolveRegion(wallpaper) {
       const regionId = (this.$route.params.regionId || '').replace(/\.html$/, '');
       const match = regionId.match(/^(.+)-\d+$/);
       let code = match ? match[1] : '';
-      // 回退：从壁纸 URL 中提取地区代码（如 _ZH-CN5896237112 → ZH-CN）
       if (!code && wallpaper.url) {
         const match = wallpaper.url.match(/_([A-Z]{2}-[A-Z]{2})\d+/);
         if (match) {
-          // 转换为标准格式：语言小写-国家大写（如 zh-CN）
           const parts = match[1].split('-');
           code = `${parts[0].toLowerCase()}-${parts[1].toUpperCase()}`;
         }
       }
-      // 在 regionMap 中查找（不区分大小写），同时标准化 code
       if (code) {
         const lowerKey = code.toLowerCase();
-        const foundKey = Object.keys(this.regionMap).find(k => k.toLowerCase() === lowerKey);
+        const foundKey = Object.keys(REGION_KEY_MAP).find(k => k.toLowerCase() === lowerKey);
         if (foundKey) {
           this.regionCode = foundKey;
-          this.regionName = this.regionMap[foundKey];
+          this.regionName = this.getRegionName(foundKey);
           return;
         }
       }
@@ -498,25 +474,31 @@ export default {
       this.regionName = '';
     },
     
-    // 重新加载
     retryLoad() {
       this.loadWallpaperDetail();
     },
 
-    // 动态更新详情页 SEO：title/description/canonical + 壁纸结构化数据
     applyDetailSEO(wallpaper) {
       if (!wallpaper) return;
-      const regionPart = this.regionName ? `${this.regionName}必应壁纸，` : '';
-      const title = `${wallpaper.title} - ${regionPart}必应壁纸高清下载`;
-      const description = `${wallpaper.title}。${wallpaper.copyright || ''} 发布于${wallpaper.datetime}${this.regionName ? `，来自${this.regionName}地区` : ''}。必应壁纸提供4K、1920x1080等多种分辨率免费下载。`;
-      const keywords = [
-        wallpaper.title,
-        this.regionName ? `${this.regionName}必应壁纸` : '必应壁纸',
-        this.regionName ? `${this.regionName}壁纸` : '',
-        '高清壁纸下载',
-        'bing wallpaper',
-        wallpaper.datetime
-      ].filter(Boolean).join(',');
+      const regionPart = this.regionName ? this.$t('seo.detailSeoTitle', { title: '', region: this.regionName }).replace(/^ - /, '') + '，' : '';
+      const title = this.$t('seo.detailSeoTitle', { title: wallpaper.title, region: this.regionName ? this.regionName + '必应壁纸' : '必应壁纸' })
+      const regionText = this.regionName ? this.$i18n.locale === 'zh-CN' ? `，来自${this.regionName}地区` : `, from ${this.regionName}` : ''
+      const description = this.$t('seo.detailSeoDesc', {
+        title: wallpaper.title,
+        copyright: wallpaper.copyright || '',
+        date: wallpaper.datetime,
+        region: regionText
+      })
+      const keywords = this.regionName
+        ? this.$t('seo.detailSeoKeywords', {
+            title: wallpaper.title,
+            region: this.regionName,
+            date: wallpaper.datetime
+          })
+        : this.$t('seo.detailSeoKeywordsNoRegion', {
+            title: wallpaper.title,
+            date: wallpaper.datetime
+          })
       updateSEO({
         title,
         description,
@@ -528,20 +510,17 @@ export default {
       setWallpaperJsonLd(wallpaper, this.regionCode, this.regionName);
     },
 
-    // 切换分辨率
     changeResolution(resolution) {
       this.currentResolution = resolution;
-      this.showMessage('分辨率已切换为 ' + resolution, 'success');
+      this.showMessage(this.$t('detail.resolutionSwitched', { resolution }), 'success');
     },
     
-    // 打开原图
     openOriginalImage() {
       if (this.wallpaperData) {
         window.open(this.wallpaperData.url, '_blank');
       }
     },
     
-    // 下载壁纸
     downloadWallpaper() {
       if (!this.wallpaperData) return;
       
@@ -553,54 +532,49 @@ export default {
       link.click();
       document.body.removeChild(link);
       
-      this.showMessage('开始下载壁纸', 'success');
+      this.showMessage(this.$t('detail.startDownload'), 'success');
     },
     
-    // 复制图片链接
     copyImageUrl() {
       if (!this.wallpaperData) return;
-      this.copyToClipboard(this.currentImageUrl, '图片链接已复制到剪贴板');
+      this.copyToClipboard(this.currentImageUrl, this.$t('detail.linkCopied'));
     },
     
-    // 设为桌面壁纸
     setAsDesktopBackground() {
-      this.showMessage('右键点击图片选择"设置为桌面背景"即可', 'info');
+      this.showMessage(this.$t('detail.setDesktopHint'), 'info');
     },
     
-    // 收藏壁纸
     addToFavorites() {
       const favorites = JSON.parse(localStorage.getItem('wallpaperFavorites') || '[]');
       
       if (this.wallpaperData) {
-        // 检查是否已收藏
         const exists = favorites.some(item => item.id === this.wallpaperData.id);
         
         if (exists) {
-          this.showMessage('该壁纸已收藏过', 'warning');
+          this.showMessage(this.$t('detail.alreadyFavorited'), 'warning');
         } else {
           favorites.push({
             ...this.wallpaperData,
             addTime: new Date().toISOString()
           });
           localStorage.setItem('wallpaperFavorites', JSON.stringify(favorites));
-          this.showMessage('壁纸收藏成功', 'success');
+          this.showMessage(this.$t('detail.favoriteSuccess'), 'success');
         }
       }
     },
     
-    // 分享到社交媒体
     shareToSocial(platform) {
       if (!this.wallpaperData) return;
       
       const shareUrl = encodeURIComponent(window.location.href);
-      const shareTitle = encodeURIComponent(`必应壁纸：${this.wallpaperData.title}`);
+      const shareTitle = encodeURIComponent(this.$t('detail.sharePrefix') + this.wallpaperData.title);
       const shareContent = encodeURIComponent(this.wallpaperData.copyright);
       
       let url = '';
       
       switch (platform) {
         case 'wechat':
-          this.showMessage('请使用微信扫码分享', 'info');
+          this.showMessage(this.$t('detail.wechatShareHint'), 'info');
           return;
         case 'weibo':
           url = `https://service.weibo.com/share/share.php?url=${shareUrl}&title=${shareTitle}&pic=${encodeURIComponent(this.currentImageUrl)}`;
@@ -612,14 +586,12 @@ export default {
       }
     },
     
-    // 复制分享链接
     copyShareLink() {
       if (!this.wallpaperData) return;
       const shareUrl = `${window.location.origin}/wallpaper/detail/${this.regionCode}-${this.wallpaperData.id}.html`;
-      this.copyToClipboard(shareUrl, '分享链接已复制');
+      this.copyToClipboard(shareUrl, this.$t('detail.shareLinkCopied'));
     },
 
-    // 通用复制到剪贴板（原生 API + execCommand 降级）
     copyToClipboard(text, successMsg) {
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).then(() => {
@@ -641,14 +613,13 @@ export default {
       textarea.select();
       try {
         const ok = document.execCommand('copy');
-        this.showMessage(ok ? successMsg : '复制失败，请手动复制', ok ? 'success' : 'warning');
+        this.showMessage(ok ? successMsg : this.$t('detail.copyFailedManual'), ok ? 'success' : 'warning');
       } catch (err) {
-        this.showMessage('复制失败，请手动复制', 'warning');
+        this.showMessage(this.$t('detail.copyFailedManual'), 'warning');
       }
       document.body.removeChild(textarea);
     },
     
-    // 显示消息提示（使用 Element UI 的 $message 服务）
     showMessage(text, type = 'success') {
       if (this.$message) {
         this.$message({ message: text, type, showClose: false, duration: 3000 });
@@ -659,7 +630,6 @@ export default {
 </script>
 
 <style scoped>
-/* 根容器 */
 .detail-root {
   min-height: 100vh;
   background-attachment: fixed;
@@ -669,9 +639,14 @@ export default {
   transition: background-image 0.5s ease;
 }
 
-/* 全屏模式 */
 .detail-root.fullscreen-mode .detail-container {
   display: none;
+}
+
+.detail-root.fullscreen-mode {
+  background-color: #000;
+  background-size: contain;
+  background-attachment: scroll;
 }
 
 .fullscreen-overlay {
@@ -684,14 +659,12 @@ export default {
   cursor: pointer;
 }
 
-/* 容器样式 */
 .detail-container {
   max-width: 1500px;
   margin: 0 auto;
   padding: 30px;
 }
 
-/* 详情卡片 */
 .wallpaper-detail-card {
   border-radius: 14px;
   overflow: hidden;
@@ -707,7 +680,6 @@ export default {
   align-items: flex-start;
 }
 
-/* 图片展示区域 */
 .image-showcase {
   flex: 1;
   min-width: 0;
@@ -750,7 +722,6 @@ export default {
   color: #f56c6c;
 }
 
-/* 图片操作按钮 */
 .image-actions {
   display: flex;
   justify-content: center;
@@ -770,13 +741,11 @@ export default {
   padding: 12px 24px;
 }
 
-/* 信息面板 */
 .info-panel {
   width: 380px;
   flex-shrink: 0;
 }
 
-/* 信息区块 */
 .info-section {
   margin-bottom: 28px;
   padding-bottom: 28px;
@@ -789,7 +758,6 @@ export default {
   padding-bottom: 0;
 }
 
-/* 壁纸标题 */
 .wallpaper-title {
   font-size: 26px;
   font-weight: 700;
@@ -798,7 +766,6 @@ export default {
   margin: 0;
 }
 
-/* 信息项 */
 .info-item {
   display: flex;
   align-items: baseline;
@@ -830,7 +797,6 @@ export default {
   line-height: 1.7;
 }
 
-/* 区块标题 */
 .section-title {
   font-size: 17px;
   font-weight: 600;
@@ -840,7 +806,6 @@ export default {
   border-left: 4px solid #409eff;
 }
 
-/* 版权链接 */
 .copyright-link {
   display: inline-flex;
   align-items: center;
@@ -855,7 +820,6 @@ export default {
   color: #66b1ff;
 }
 
-/* 版权链接容器 */
 .copyright-links {
   display: flex;
   flex-wrap: wrap;
@@ -865,7 +829,6 @@ export default {
   padding-top: 10px;
 }
 
-/* 分辨率网格 */
 .resolution-grid {
   display: flex;
   flex-wrap: wrap;
@@ -885,7 +848,6 @@ export default {
   border-color: #409eff;
 }
 
-/* 加载状态 */
 .loading-container,
 .error-container {
   display: flex;
@@ -917,7 +879,6 @@ export default {
   font-size: 16px;
 }
 
-/* 错误状态 */
 .error-icon {
   font-size: 64px;
   color: #f56c6c;
@@ -936,7 +897,6 @@ export default {
   margin: 0 0 20px 0;
 }
 
-/* 推荐壁纸 */
 .recommend-section {
   margin-top: 36px;
 }
@@ -1027,7 +987,6 @@ export default {
   color: #909399;
 }
 
-/* 响应式设计 */
 @media screen and (max-width: 1024px) {
   .detail-content {
     flex-direction: column;
@@ -1043,35 +1002,273 @@ export default {
 }
 
 @media screen and (max-width: 768px) {
+  .detail-root {
+    background-attachment: scroll;
+  }
+
   .detail-container {
-    padding: 16px;
+    padding: 12px;
   }
 
   .wallpaper-detail-card .el-card__body {
-    padding: 20px;
+    padding: 16px;
+  }
+
+  .detail-content {
+    gap: 20px;
+  }
+
+  .detail-image {
+    min-height: 280px;
+    max-height: 450px;
+  }
+
+  .image-placeholder,
+  .image-error {
+    height: 280px;
+    font-size: 15px;
+  }
+
+  .image-placeholder i,
+  .image-error i {
+    font-size: 42px;
+    margin-bottom: 12px;
   }
 
   .wallpaper-title {
     font-size: 20px;
   }
 
-  .resolution-grid {
-    justify-content: center;
-  }
-
   .image-actions {
     flex-direction: column;
+    gap: 8px;
   }
 
   .image-actions .el-button-group {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
+    flex-direction: row;
+    gap: 0;
+  }
+
+  .image-actions .el-button {
+    font-size: 13px;
+    padding: 10px 16px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .image-actions .el-button span {
+    display: inline;
+  }
+
+  .fullscreen-btn {
+    width: 100%;
+  }
+
+  .resolution-grid {
+    justify-content: flex-start;
     gap: 8px;
+  }
+
+  .resolution-btn {
+    width: 84px;
+    font-size: 12px;
+  }
+
+  .info-panel {
+    width: 100%;
+  }
+
+  .info-section {
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+  }
+
+  .info-item {
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 0;
+  }
+
+  .info-label {
+    flex: 0 0 auto;
+    font-size: 13px;
+  }
+
+  .info-value {
+    font-size: 14px;
   }
 
   .copyright-links {
     padding-left: 0;
     padding-top: 8px;
+    gap: 12px;
+  }
+
+  .copyright-link {
+    font-size: 13px;
+  }
+
+  .section-title {
+    font-size: 15px;
+    margin-bottom: 14px;
+  }
+
+  .recommend-section {
+    margin-top: 24px;
+  }
+
+  .recommend-title {
+    font-size: 17px;
+    margin-bottom: 16px;
+  }
+
+  .loading-container,
+  .error-container {
+    min-height: 300px;
+  }
+
+  .loading-card,
+  .error-card {
+    width: 90%;
+    max-width: 320px;
+  }
+
+  .loading-content,
+  .error-content {
+    padding: 30px 16px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .detail-container {
+    padding: 8px;
+  }
+
+  .wallpaper-detail-card .el-card__body {
+    padding: 12px;
+  }
+
+  .detail-content {
+    gap: 16px;
+  }
+
+  .image-wrapper {
+    min-height: 200px;
+    margin-bottom: 12px;
+  }
+
+  .detail-image {
+    min-height: 200px;
+    max-height: 350px;
+  }
+
+  .image-placeholder,
+  .image-error {
+    height: 200px;
+    font-size: 14px;
+  }
+
+  .image-placeholder i,
+  .image-error i {
+    font-size: 36px;
+    margin-bottom: 10px;
+  }
+
+  .wallpaper-title {
+    font-size: 18px;
+  }
+
+  .image-actions .el-button {
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+
+  .image-actions .el-button-group {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .image-actions .el-button-group .el-button {
+    width: 100%;
+  }
+
+  .resolution-btn {
+    width: 72px;
+    font-size: 11px;
+    padding: 7px 4px !important;
+  }
+
+  .info-section {
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+  }
+
+  .info-label {
+    font-size: 12px;
+  }
+
+  .info-value {
+    font-size: 13px;
+  }
+
+  .section-title {
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .recommend-col {
+    margin-bottom: 12px;
+  }
+
+  .recommend-info {
+    padding: 8px 10px;
+  }
+
+  .recommend-name {
+    font-size: 12px;
+  }
+
+  .recommend-date {
+    font-size: 11px;
+  }
+
+  .loading-content,
+  .error-content {
+    padding: 24px 12px;
+  }
+
+  .loading-icon {
+    font-size: 36px;
+  }
+
+  .error-icon {
+    font-size: 48px;
+  }
+}
+
+@media screen and (max-width: 375px) {
+  .detail-container {
+    padding: 6px;
+  }
+
+  .wallpaper-detail-card .el-card__body {
+    padding: 10px;
+  }
+
+  .wallpaper-title {
+    font-size: 16px;
+  }
+
+  .resolution-btn {
+    width: 64px;
+    font-size: 10px;
+    padding: 6px 2px !important;
+  }
+
+  .recommend-col {
+    margin-bottom: 10px;
   }
 }
 </style>
