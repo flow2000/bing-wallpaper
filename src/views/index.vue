@@ -52,7 +52,28 @@
                 中文
               </el-dropdown-item>
               <el-dropdown-item command="en-US" :class="{ 'is-active': currentLocale === 'en-US' }">
-                English
+                English (US)
+              </el-dropdown-item>
+              <el-dropdown-item command="en-GB" :class="{ 'is-active': currentLocale === 'en-GB' }">
+                English (UK)
+              </el-dropdown-item>
+              <el-dropdown-item command="en-CA" :class="{ 'is-active': currentLocale === 'en-CA' }">
+                English (CA)
+              </el-dropdown-item>
+              <el-dropdown-item command="en-IN" :class="{ 'is-active': currentLocale === 'en-IN' }">
+                English (IN)
+              </el-dropdown-item>
+              <el-dropdown-item command="ja-JP" :class="{ 'is-active': currentLocale === 'ja-JP' }">
+                日本語
+              </el-dropdown-item>
+              <el-dropdown-item command="de-DE" :class="{ 'is-active': currentLocale === 'de-DE' }">
+                Deutsch
+              </el-dropdown-item>
+              <el-dropdown-item command="fr-FR" :class="{ 'is-active': currentLocale === 'fr-FR' }">
+                Français
+              </el-dropdown-item>
+              <el-dropdown-item command="it-IT" :class="{ 'is-active': currentLocale === 'it-IT' }">
+                Italiano
               </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
@@ -134,7 +155,18 @@ export default {
       return this.$i18n.locale
     },
     currentLangLabel() {
-      return this.currentLocale === 'zh-CN' ? '中文' : 'EN'
+      const labels = {
+        'zh-CN': '中文',
+        'en-US': 'EN',
+        'en-GB': 'EN-GB',
+        'en-CA': 'EN-CA',
+        'en-IN': 'EN-IN',
+        'ja-JP': '日本語',
+        'de-DE': 'DE',
+        'fr-FR': 'FR',
+        'it-IT': 'IT'
+      }
+      return labels[this.currentLocale] || 'EN'
     },
     visitorCountHtml() {
       return '<span id="busuanzi_value_site_uv" class="highlight">' + this.visitorCount + '</span>'
