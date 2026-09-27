@@ -478,9 +478,20 @@ export default {
           setTimeout(loadNext, this.previewLoadDelay);
         };
         img.onerror = () => {
-          this.currentLoadingCount--;
-          this.$set(this.previewLoadedMap, id, true);
-          setTimeout(loadNext, this.previewLoadDelay);
+          // 预览图加载失败时，降级尝试加载 HD 原图（例如 cdn.bimg.cc 的老图片没有 400x240 版本）
+          const hdUrl = this.getHdUrl(wallpaper);
+          const hdImg = new Image();
+          hdImg.onload = () => {
+            this.$set(this.hdLoadedMap, id, true);
+            this.currentLoadingCount--;
+            setTimeout(loadNext, this.previewLoadDelay);
+          };
+          hdImg.onerror = () => {
+            this.currentLoadingCount--;
+            this.$set(this.previewLoadedMap, id, true);
+            setTimeout(loadNext, this.previewLoadDelay);
+          };
+          hdImg.src = hdUrl;
         };
         img.src = this.getPreviewUrl(wallpaper);
       };
@@ -772,6 +783,25 @@ export default {
     
     handleImageError(e) {
       console.error('Image load failed:', e);
+      // 图片加载失败时，如果还没试过HD版本，尝试降级使用HD原图
+      // 从事件对象中找到对应的wallpaper id
+      const target = e && e.target;
+      if (!target) return;
+      const wrapper = target.closest('[data-wallpaper-id]');
+      if (!wrapper) return;
+      const id = wrapper.dataset.wallpaperId;
+      if (!id || this.hdLoadedMap[id]) return;
+      
+      const wallpaper = this.allWallpapers.find(w => String(w.id) === String(id));
+      if (!wallpaper) return;
+      
+      // 如果当前显示的是预览图且加载失败，尝试HD版本
+      const hdUrl = this.getHdUrl(wallpaper);
+      const testImg = new Image();
+      testImg.onload = () => {
+        this.$set(this.hdLoadedMap, id, true);
+      };
+      testImg.src = hdUrl;
     }
   }
 };
