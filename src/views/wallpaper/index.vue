@@ -483,6 +483,7 @@ export default {
           const hdImg = new Image();
           hdImg.onload = () => {
             this.$set(this.hdLoadedMap, id, true);
+            this.$set(this.previewLoadedMap, id, true);
             this.currentLoadingCount--;
             setTimeout(loadNext, this.previewLoadDelay);
           };
@@ -800,6 +801,7 @@ export default {
       const testImg = new Image();
       testImg.onload = () => {
         this.$set(this.hdLoadedMap, id, true);
+        this.$set(this.previewLoadedMap, id, true);
       };
       testImg.src = hdUrl;
     }
