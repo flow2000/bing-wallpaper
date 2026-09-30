@@ -1,5 +1,5 @@
 <template>
-  <div class="detail-root" :class="{ 'fullscreen-mode': fullscreenMode }" :style="{ backgroundImage: wallpaperData ? `url(${currentImageUrl})` : 'none' }">
+  <div class="detail-root" :class="{ 'fullscreen-mode': fullscreenMode }" :style="fullscreenMode && wallpaperData ? { backgroundImage: `url(${currentImageUrl})` } : {}">
     <!-- 全屏壁纸浮层 -->
     <div class="fullscreen-overlay" v-if="fullscreenMode" @click="toggleFullscreen"></div>
 
