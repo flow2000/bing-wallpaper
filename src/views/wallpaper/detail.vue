@@ -9,12 +9,13 @@
       <div class="detail-content">
         <!-- 壁纸图片展示区域 -->
         <div class="image-showcase">
-          <div class="image-wrapper" @click="toggleFullscreen" :title="wallpaperData.title + (wallpaperData.copyright ? '——' + wallpaperData.copyright : '')">
+          <div class="image-wrapper" :class="{ 'is-portrait': isPortraitResolution }" @click="toggleFullscreen" :title="wallpaperData.title + (wallpaperData.copyright ? '——' + wallpaperData.copyright : '')">
             <el-image
               :src="currentImageUrl"
               :alt="wallpaperData.title"
               fit="contain"
               class="detail-image"
+              :class="{ 'is-portrait': isPortraitResolution }"
               :key="currentImageUrl"
             >
               <div slot="placeholder" class="image-placeholder">
@@ -281,6 +282,15 @@ export default {
         /_\d+x\d+|_UHD/,
         `_${this.currentResolution}`
       );
+    },
+
+    isPortraitResolution() {
+      if (this.currentResolution === 'UHD') return false;
+      const match = this.currentResolution.match(/(\d+)x(\d+)/);
+      if (!match) return false;
+      const w = parseInt(match[1], 10);
+      const h = parseInt(match[2], 10);
+      return h > w;
     },
     
     regionListUrl() {
@@ -739,6 +749,22 @@ export default {
   display: block;
 }
 
+.detail-image.is-portrait {
+  max-height: none;
+  min-height: auto;
+  height: auto;
+  width: auto;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.image-wrapper.is-portrait {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20px 0;
+}
+
 .image-placeholder,
 .image-error {
   display: flex;
@@ -1062,6 +1088,15 @@ export default {
     max-height: 450px;
   }
 
+  .detail-image.is-portrait {
+    max-height: none;
+    min-height: auto;
+  }
+
+  .image-wrapper.is-portrait {
+    padding: 12px 0;
+  }
+
   .image-placeholder,
   .image-error {
     height: 280px;
@@ -1201,6 +1236,15 @@ export default {
   .detail-image {
     min-height: 200px;
     max-height: 350px;
+  }
+
+  .detail-image.is-portrait {
+    max-height: none;
+    min-height: auto;
+  }
+
+  .image-wrapper.is-portrait {
+    padding: 8px 0;
   }
 
   .image-placeholder,
