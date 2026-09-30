@@ -1,4 +1,18 @@
 {
   "buildCommand": "npm run build",
-  "outputDirectory": "dist"
+  "outputDirectory": "dist",
+  "rewrites": [
+    {
+      "source": "/wallpaper/detail/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/region/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/((?!static|.*\\..*|_next).*)",
+      "destination": "/index.html"
+    }
+  ]
 }

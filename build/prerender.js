@@ -250,7 +250,8 @@ async function fetchPage(region, page) {
       throw new Error('接口返回 code=' + body.code)
     } catch (e) {
       if (attempt === 2) throw e
-      await delay(1000 * (attempt + 1))
+      // 指数退避：第1次重试等 3s，第2次等 8s
+      await delay(3000 * Math.pow(2, attempt))
     }
   }
 }
@@ -271,7 +272,7 @@ async function fetchRegion(region) {
       items.push(w)
     }
     page++
-    if (items.length < total) await delay(30)
+    if (items.length < total) await delay(500)
   }
   return items
 }
@@ -288,7 +289,10 @@ async function main() {
   console.log(chalk.green('  about.html (1 页)'))
 
   let totalDetail = 0
+  let idx = 0
   for (const code of Object.keys(REGIONS)) {
+    // 地区之间也加延迟，避免集中打爆 API
+    if (idx++ > 0) await delay(1000)
     const name = REGIONS[code]
     process.stdout.write(chalk.cyan('  拉取 ' + code + ' (' + name + ') ... '))
     let items
