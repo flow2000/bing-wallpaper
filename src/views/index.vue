@@ -198,15 +198,34 @@ export default {
     
     initVisitorCount() {
       try {
-        if (document.getElementById('busuanzi_value_site_uv')) {
-          const checkBusuanzi = setInterval(() => {
-            if (window._hmt) {
-              clearInterval(checkBusuanzi);
+        this.$nextTick(() => {
+          // 确保计数器元素已渲染到 DOM 中
+          const el = document.getElementById('busuanzi_value_site_uv');
+          if (!el) return;
+
+          // 动态加载 busuanzi 脚本
+          const script = document.createElement('script');
+          script.src = '//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+          script.async = true;
+          document.body.appendChild(script);
+
+          // 监听 busuanzi 更新计数，同步到 Vue 数据中
+          const observer = new MutationObserver(() => {
+            const text = el.textContent.trim();
+            if (text && text !== '---') {
+              this.visitorCount = text;
+              observer.disconnect();
             }
-          }, 1000);
-        }
+          });
+          observer.observe(el, { childList: true, characterData: true, subtree: true });
+
+          // 5秒后如果还没更新，停止监听（避免脚本加载失败时长时间监听）
+          setTimeout(() => {
+            observer.disconnect();
+          }, 5000);
+        });
       } catch (error) {
-        // visitor count loading
+        // visitor count loading error
       }
     }
   }
