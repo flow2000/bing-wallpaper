@@ -5,6 +5,9 @@
  * 用途：为 SPA 生成带真实 <h1>、meta、canonical、JSON-LD 的静态 HTML，
  * 让 Bing 等搜索引擎无需执行 JS 也能识别页面标题与内容，解决「缺少 h1 标记」。
  *
+ * 数据来源：从 bing-wallpaper-api 仓库的 data 目录直接拉取完整 JSON 文件
+ *         （一次请求获取全部数据，比分页 API 快很多）
+ *
  * 生成页面：
  *  - /about.html
  *  - /region/{region}.html          (9 个地区页)
@@ -20,8 +23,7 @@ const chalk = require('chalk')
 
 const SITE_URL = 'https://bimg.cc'
 const SITE_NAME = '必应壁纸'
-const API = 'https://api.bimg.cc/all'
-const PAGE_SIZE = 100 // 接口 limit 上限为 100
+const DATA_BASE_URL = 'https://raw.githubusercontent.com/flow2000/bing-wallpaper-api/master/data'
 const DIST = path.resolve(__dirname, '../dist')
 
 const REGIONS = {
@@ -235,46 +237,33 @@ function renderAbout(base) {
 }
 
 // ---------- 请求层 ----------
-async function fetchPage(region, page) {
+// 从 GitHub 仓库的 data 目录直接获取完整 JSON 数据（一次请求获取全部，无需分页）
+async function fetchRegion(region) {
+  const url = DATA_BASE_URL + '/' + region + '_all.json'
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
-      const resp = await axios.get(API, {
-        params: { mkt: region, limit: PAGE_SIZE, page, order: 'desc' },
+      const resp = await axios.get(url, {
         timeout: 30000,
         headers: { 'User-Agent': 'bing-wallpaper-prerender/1.0 (SEO build)' }
       })
       const body = resp.data
       if (body && body.code === 200) {
-        return { total: body.total || 0, items: body.data || [] }
+        const items = []
+        const seen = {}
+        for (const w of body.data || []) {
+          if (w.id == null || seen[w.id]) continue
+          seen[w.id] = true
+          items.push(w)
+        }
+        return items
       }
-      throw new Error('接口返回 code=' + body.code)
+      throw new Error('返回 code=' + body.code)
     } catch (e) {
       if (attempt === 2) throw e
       // 指数退避：第1次重试等 3s，第2次等 8s
       await delay(3000 * Math.pow(2, attempt))
     }
   }
-}
-
-async function fetchRegion(region) {
-  const items = []
-  const seen = {}
-  let total = Infinity
-  let page = 1
-  while (items.length < total) {
-    const r = await fetchPage(region, page)
-    total = r.total
-    if (!r.items || r.items.length === 0) break
-    for (const w of r.items) {
-      // 后端偶发返回重复 id，按 id 去重，保证每个 URL 只生成一个文件
-      if (w.id == null || seen[w.id]) continue
-      seen[w.id] = true
-      items.push(w)
-    }
-    page++
-    if (items.length < total) await delay(500)
-  }
-  return items
 }
 
 // ---------- 主流程 ----------
@@ -291,8 +280,8 @@ async function main() {
   let totalDetail = 0
   let idx = 0
   for (const code of Object.keys(REGIONS)) {
-    // 地区之间也加延迟，避免集中打爆 API
-    if (idx++ > 0) await delay(1000)
+    // 地区之间加短延迟，避免请求过于集中
+    if (idx++ > 0) await delay(200)
     const name = REGIONS[code]
     process.stdout.write(chalk.cyan('  拉取 ' + code + ' (' + name + ') ... '))
     let items
