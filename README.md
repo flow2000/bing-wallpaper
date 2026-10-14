@@ -8,6 +8,33 @@
 
 在线预览：[https://bimg.cc](https://bimg.cc)
 
+## 一键部署
+
+本项目提供两个部署分支，部署后即得到一个完整可用的必应壁纸网站（数据来自公开 API [api.bimg.cc](https://api.bimg.cc)，无需自行搭建后端）：
+
+| 分支 | 说明 |
+|------|------|
+| `master` | 完整版本，与 [bimg.cc](https://bimg.cc) 线上站点一致 |
+| `pure` | 纯净版本，移除了站长收录验证与第三方统计代码，推荐自用部署 |
+
+### 部署 master 分支
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/flow2000/bing-wallpaper/tree/master)
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/flow2000/bing-wallpaper)
+
+### 部署 pure 分支
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/flow2000/bing-wallpaper/tree/pure)
+
+Netlify 部署 `pure` 分支：Fork 本仓库后，在 Netlify 点击 **Add new site** → **Import an existing project**，选择 Fork 的仓库并将部署分支指定为 `pure` 即可（构建配置已内置在 `netlify.toml`）。
+
+### 部署说明
+
+- 部署产物为纯静态文件，无需服务器和数据库
+- 壁纸数据实时来自公开 API，每日自动更新
+- 如需绑定自己的域名，请在对应平台的 Domain 设置中添加
+- 如需修改站点 SEO 信息（canonical、og:url 等），请修改 `index.html` 及 `build/prerender.js` 中的 `SITE_URL`
+
 ## 功能特性
 
 ### 壁纸浏览
