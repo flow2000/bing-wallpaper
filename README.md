@@ -8,6 +8,33 @@
 
 在线预览：[https://bimg.cc](https://bimg.cc)
 
+## 一键部署
+
+本仓库 `pure` 分支为纯净部署版本，一键部署即可得到一个完整可用的必应壁纸网站（数据来自公开 API [api.bimg.cc](https://api.bimg.cc)，无需自行搭建后端）。
+
+### 部署到 Vercel（推荐）
+
+点击下方按钮，一键克隆并部署本项目的 `pure` 分支：
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/flow2000/bing-wallpaper/tree/pure)
+
+部署完成后，Vercel 会自动分配一个 `*.vercel.app` 域名，打开即可访问你自己的必应壁纸网站。
+
+### 部署到 Netlify
+
+1. 点击右上角 **Fork** 本仓库（注意勾选仅 `pure` 分支即可）
+2. 登录 [Netlify](https://app.netlify.com/)，点击 **Add new site** → **Import an existing project**
+3. 选择你 Fork 的仓库，部署分支选择 **`pure`**
+4. 构建设置保持默认（`netlify.toml` 已内置配置：构建命令 `npm run build`，发布目录 `dist`）
+5. 点击 **Deploy site**，等待构建完成即可访问
+
+### 部署说明
+
+- 部署产物为纯静态文件，无需服务器和数据库
+- 壁纸数据实时来自公开 API，每日自动更新
+- 如需绑定自己的域名，请在对应平台的 Domain 设置中添加
+- 如需修改站点 SEO 信息（canonical、og:url 等），请修改 `index.html` 及 `build/prerender.js` 中的 `SITE_URL`
+
 ## 功能特性
 
 ### 壁纸浏览
