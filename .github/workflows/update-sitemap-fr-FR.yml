@@ -1,33 +1,24 @@
 permissions:
   contents: write
-name: generate-sitemap
+name: update-sitemap-fr-FR
 
 on:
   schedule:
-    # 每天各时区 00:12（比 bing-wallpaper-api 数据更新对应时区的 00:02 迟 10 分钟）
-    - cron: '12 0 * * *'
-      timezone: Asia/Shanghai
-    - cron: '12 0 * * *'
-      timezone: Asia/Tokyo
-    - cron: '12 0 * * *'
-      timezone: Europe/Berlin
-    - cron: '12 0 * * *'
-      timezone: Europe/London
+    # 每天巴黎时间 00:12（比 bing-wallpaper-api 数据更新对应时区的 00:02 迟 10 分钟）
     - cron: '12 0 * * *'
       timezone: Europe/Paris
-    - cron: '12 0 * * *'
-      timezone: Europe/Rome
-    - cron: '12 0 * * *'
-      timezone: America/Toronto
-    - cron: '12 0 * * *'
-      timezone: America/Los_Angeles
-    - cron: '12 0 * * *'
-      timezone: Asia/Kolkata
   workflow_dispatch:
+  repository_dispatch:
+    types:
+      - webhook-fr-FR
 
 jobs:
-  generate-sitemap:
+  update-sitemap:
     runs-on: ubuntu-latest
+    # 所有分地区任务共用同一并发组，串行执行，避免互相覆盖
+    concurrency:
+      group: bing-wallpaper-sitemap
+      cancel-in-progress: false
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -35,10 +26,10 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
           cache: 'pip'
+          python-version: 3.9.12
 
-      - name: Install dependencies
+      - name: Install Requirements
         run: pip install requests
 
       - name: Generate sitemap.xml
@@ -49,7 +40,7 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add static/sitemap.xml
-          git diff --quiet && git diff --staged --quiet || git commit -m "chore: auto-update sitemap.xml"
+          git diff --quiet && git diff --staged --quiet || git commit -m "update sitemap.xml (fr-FR)"
 
       - name: Push changes
         uses: ad-m/github-push-action@master

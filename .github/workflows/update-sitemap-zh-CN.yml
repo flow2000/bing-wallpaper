@@ -1,0 +1,56 @@
+permissions:
+  contents: write
+name: update-sitemap-zh-CN
+
+on:
+  schedule:
+    # 每天北京时间 00:12（比 bing-wallpaper-api 数据更新对应时区的 00:02 迟 10 分钟）
+    - cron: '12 0 * * *'
+      timezone: Asia/Shanghai
+  workflow_dispatch:
+  repository_dispatch:
+    types:
+      - webhook-zh-CN
+
+jobs:
+  update-sitemap:
+    runs-on: ubuntu-latest
+    # 所有分地区任务共用同一并发组，串行执行，避免互相覆盖
+    concurrency:
+      group: bing-wallpaper-sitemap
+      cancel-in-progress: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          cache: 'pip'
+          python-version: 3.9.12
+
+      - name: Install Requirements
+        run: pip install requests
+
+      - name: Generate sitemap.xml
+        run: python scripts/generate_sitemap.py
+
+      - name: Commit sitemap.xml
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add static/sitemap.xml
+          git diff --quiet && git diff --staged --quiet || git commit -m "update sitemap.xml (zh-CN)"
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref_name }}
+
+      - name: Submit to search engines
+        if: always()
+        continue-on-error: true
+        env:
+          BAIDU_TOKEN: ${{ secrets.BAIDU_TOKEN }}
+        run: python scripts/submit_seo.py
