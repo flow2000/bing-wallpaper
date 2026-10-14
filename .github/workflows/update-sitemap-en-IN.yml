@@ -5,7 +5,7 @@ name: update-sitemap-en-IN
 on:
   schedule:
     # 每天印度时间 00:12（比 bing-wallpaper-api 数据更新对应时区的 00:02 迟 10 分钟）
-    - cron: '12 0 * * *'
+    - cron: '19 0 * * *'
       timezone: Asia/Kolkata
   workflow_dispatch:
   repository_dispatch:
