@@ -1,139 +1,257 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
-Generate sitemap.xml for bing-wallpaper static site.
+从 GitHub 仓库 flow2000/bing-wallpaper-api 的 data 目录拉取 xx_all.json，
+生成符合 SEO 规范的 sitemap.xml 网址地图。
 
-Scans the dist/ directory for HTML files and generates a sitemap.xml
-with proper lastmod dates based on file modification times.
+数据来源：https://github.com/flow2000/bing-wallpaper-api/tree/master/data
+对应 raw URL：https://raw.githubusercontent.com/flow2000/bing-wallpaper-api/master/data/{mkt}_all.json
+
+包含的页面类型（按 SEO 优先级排序）：
+  1. 首页        https://bimg.cc/index.html          priority=1.0  changefreq=daily
+  2. 关于页      https://bimg.cc/about.html          priority=0.5  changefreq=monthly
+  3. 地区页      https://bimg.cc/region/{mkt}.html   priority=0.9  changefreq=daily
+  4. 壁纸详情页  https://bimg.cc/wallpaper/detail/{mkt}-{id}.html
+                                                        priority=0.8  changefreq=yearly
+
+URL 格式与壁纸项目 prerender.js 保持一致。
+
+SEO 规范说明：
+  - 首页优先级最高（1.0），搜索引擎最常抓取
+  - 地区页内容每日更新，changefreq=daily，priority=0.9
+  - 壁纸详情页内容发布后基本不变，changefreq=yearly，priority=0.8
+  - 关于页更新频率低，changefreq=monthly，priority=0.5
+  - lastmod 使用 YYYY-MM-DD 格式，符合 sitemaps.org 规范
+  - URL 全部使用完整绝对路径，避免重复索引
+
+用法：
+  python scripts/generate_sitemap.py                 # 生成所有地区的 sitemap.xml
+  python scripts/generate_sitemap.py zh-CN           # 仅生成指定地区的 sitemap.xml
+  python scripts/generate_sitemap.py -o sitemap.xml  # 指定输出文件路径
 """
-
 import os
-import re
-from datetime import datetime, timezone
-from xml.etree import ElementTree as ET
+import sys
+import time
+from datetime import date
 from xml.dom import minidom
+from xml.etree import ElementTree as ET
 
-# Configuration
-BASE_URL = "https://bimg.cc"
-DIST_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dist")
-STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "static")
-OUTPUT_FILE = os.path.join(STATIC_DIR, "sitemap.xml")
+import requests
 
-# Pages that should be excluded from sitemap
-EXCLUDE_PATTERNS = [
-    "baidu_verify",
+SITE = "https://bimg.cc"
+# GitHub raw 内容地址（flow2000/bing-wallpaper-api 仓库 master 分支的 data 目录）
+GITHUB_RAW = "https://raw.githubusercontent.com/flow2000/bing-wallpaper-api/master/data"
+
+# 地区列表（与 submit_seo.py、prerender.js 保持一致）
+REGIONS = [
+    "zh-CN",
+    "en-US",
+    "ja-JP",
+    "de-DE",
+    "en-GB",
+    "fr-FR",
+    "it-IT",
+    "en-CA",
+    "en-IN",
 ]
 
-# Priority and changefreq rules
-def get_page_priority(rel_path):
-    """Get priority based on page type."""
-    if rel_path == "index.html":
-        return "1.0"
-    if rel_path.startswith("region/"):
-        return "0.9"
-    if rel_path.startswith("wallpaper/detail/"):
-        return "0.7"
-    if rel_path == "about.html":
-        return "0.5"
-    return "0.5"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# 默认输出到 static/sitemap.xml（会被构建流程拷贝到 dist 根目录）
+DEFAULT_OUTPUT = os.path.join(BASE_DIR, "..", "static", "sitemap.xml")
 
-def get_changefreq(rel_path):
-    """Get changefreq based on page type."""
-    if rel_path == "index.html" or rel_path.startswith("region/"):
-        return "daily"
-    return "monthly"
 
-def get_file_mtime(filepath):
-    """Get file modification time as YYYY-MM-DD string."""
-    mtime = os.path.getmtime(filepath)
-    dt = datetime.fromtimestamp(mtime, tz=timezone.utc)
-    return dt.strftime("%Y-%m-%d")
+def _today_str():
+    """返回今天的日期字符串 YYYY-MM-DD。"""
+    return date.today().isoformat()
 
-def should_exclude(rel_path):
-    """Check if file should be excluded from sitemap."""
-    for pattern in EXCLUDE_PATTERNS:
-        if pattern in rel_path:
-            return True
-    return False
 
-def sort_key(rel_path):
-    """Sort key for sitemap entries.
-    
-    Sort order:
-    1. index.html
-    2. about.html
-    3. region pages (sorted by name)
-    4. wallpaper detail pages (sorted by region, then by id descending)
+def fetch_wallpapers(mkt):
     """
-    if rel_path == "index.html":
-        return (0, "", 0)
-    if rel_path == "about.html":
-        return (1, "", 0)
-    if rel_path.startswith("region/"):
-        region = rel_path.replace("region/", "").replace(".html", "")
-        return (2, region, 0)
-    if rel_path.startswith("wallpaper/detail/"):
-        # Extract region and id from filename like "zh-CN-3850.html"
-        basename = os.path.basename(rel_path).replace(".html", "")
-        # Match pattern: region-id (e.g., zh-CN-3850, en-US-123)
-        match = re.match(r'^(.+)-(\d+)$', basename)
-        if match:
-            region = match.group(1)
-            page_id = int(match.group(2))
-            # Negative id for descending order (newer wallpapers first)
-            return (3, region, -page_id)
-        return (3, basename, 0)
-    return (4, rel_path, 0)
+    从 GitHub raw 拉取指定地区的 {mkt}_all.json，解析壁纸列表。
+    返回 [(id, datetime_str), ...]，按 id 降序排列。
+    """
+    url = "{raw}/{mkt}_all.json".format(raw=GITHUB_RAW, mkt=mkt)
 
-def generate_sitemap():
-    """Generate sitemap.xml from HTML files in dist directory."""
-    # Collect all HTML files
-    html_files = []
-    for root, dirs, files in os.walk(DIST_DIR):
-        for filename in files:
-            if filename.endswith(".html"):
-                filepath = os.path.join(root, filename)
-                rel_path = os.path.relpath(filepath, DIST_DIR).replace("\\", "/")
-                if not should_exclude(rel_path):
-                    html_files.append((rel_path, filepath))
+    try:
+        resp = requests.get(url, timeout=30, headers={"User-Agent": "bing-wallpaper-sitemap/1.0"})
+        resp.raise_for_status()
+        body = resp.json()
+    except Exception as e:
+        # 失败重试 1 次
+        print("[warn] {mkt} 拉取失败: {err}".format(mkt=mkt, err=e))
+        time.sleep(2)
+        try:
+            resp = requests.get(url, timeout=30, headers={"User-Agent": "bing-wallpaper-sitemap/1.0"})
+            resp.raise_for_status()
+            body = resp.json()
+        except Exception as e2:
+            print("[error] {mkt} 重试仍失败: {err}，跳过该地区".format(mkt=mkt, err=e2))
+            return []
 
-    # Sort files
-    html_files.sort(key=lambda x: sort_key(x[0]))
+    if body.get("code") != 200:
+        print("[error] {mkt} JSON 返回错误: code={code} msg={msg}".format(
+            mkt=mkt, code=body.get("code"), msg=body.get("msg")
+        ))
+        return []
 
-    # Create XML structure
+    data = body.get("data", [])
+    items = []
+    seen = set()
+    for item in data:
+        pid = item.get("id")
+        if pid is None or pid in seen:
+            continue
+        seen.add(pid)
+        dt = item.get("datetime") or item.get("created_time") or ""
+        items.append((pid, dt))
+
+    # 按 id 降序排列
+    items.sort(key=lambda x: x[0], reverse=True)
+    print("[fetch] {mkt}: 共 {n} 条（来自 GitHub data/{mkt}_all.json）".format(
+        mkt=mkt, n=len(items)
+    ))
+    return items
+
+
+def _add_url(urlset, loc, lastmod=None, changefreq=None, priority=None):
+    """向 urlset 中添加一个 <url> 节点。"""
+    url_elem = ET.SubElement(urlset, "url")
+
+    loc_elem = ET.SubElement(url_elem, "loc")
+    loc_elem.text = loc
+
+    if lastmod:
+        lastmod_elem = ET.SubElement(url_elem, "lastmod")
+        lastmod_elem.text = lastmod
+
+    if changefreq:
+        changefreq_elem = ET.SubElement(url_elem, "changefreq")
+        changefreq_elem.text = changefreq
+
+    if priority:
+        priority_elem = ET.SubElement(url_elem, "priority")
+        priority_elem.text = priority
+
+
+def generate_sitemap(regions, output_path):
+    """
+    生成 sitemap.xml 文件。
+
+    Args:
+        regions: 要包含的地区列表
+        output_path: 输出文件路径（含文件名）
+    """
+    today = _today_str()
+
     urlset = ET.Element("urlset")
     urlset.set("xmlns", "http://www.sitemaps.org/schemas/sitemap/0.9")
 
-    for rel_path, filepath in html_files:
-        url = ET.SubElement(urlset, "url")
+    total = 0
+    region_data = {}  # mkt -> [(id, dt), ...]
 
-        loc = ET.SubElement(url, "loc")
-        loc.text = f"{BASE_URL}/{rel_path}"
+    # ---------- 1. 首页（优先级最高） ----------
+    _add_url(
+        urlset,
+        loc=SITE + "/index.html",
+        lastmod=today,
+        changefreq="daily",
+        priority="1.0",
+    )
+    total += 1
 
-        lastmod = ET.SubElement(url, "lastmod")
-        lastmod.text = get_file_mtime(filepath)
+    # ---------- 2. 关于页 ----------
+    _add_url(
+        urlset,
+        loc=SITE + "/about.html",
+        lastmod=today,
+        changefreq="monthly",
+        priority="0.5",
+    )
+    total += 1
 
-        changefreq = ET.SubElement(url, "changefreq")
-        changefreq.text = get_changefreq(rel_path)
+    # ---------- 3. 地区页 ----------
+    for mkt in regions:
+        wallpapers = fetch_wallpapers(mkt)
+        region_data[mkt] = wallpapers
+        # 地区页的 lastmod 使用该地区最新壁纸的发布日期，没有则用今天
+        latest_date = wallpapers[0][1] if wallpapers else today
+        _add_url(
+            urlset,
+            loc="{site}/region/{mkt}.html".format(site=SITE, mkt=mkt),
+            lastmod=latest_date or today,
+            changefreq="daily",
+            priority="0.9",
+        )
+        total += 1
 
-        priority = ET.SubElement(url, "priority")
-        priority.text = get_page_priority(rel_path)
+    # ---------- 4. 壁纸详情页 ----------
+    for mkt in regions:
+        wallpapers = region_data.get(mkt, [])
+        for pid, dt in wallpapers:
+            _add_url(
+                urlset,
+                loc="{site}/wallpaper/detail/{mkt}-{pid}.html".format(
+                    site=SITE, mkt=mkt, pid=pid
+                ),
+                lastmod=dt if dt else None,
+                changefreq="yearly",
+                priority="0.8",
+            )
+            total += 1
 
-    # Pretty print XML
-    rough_string = ET.tostring(urlset, encoding="unicode")
+        print("[sitemap] {mkt}: 地区页 1 + 详情页 {n} 条".format(
+            mkt=mkt, n=len(wallpapers)
+        ))
+
+    # 写入文件（使用 minidom 美化缩进，保证 XML 格式规范）
+    rough_string = ET.tostring(urlset, encoding="utf-8")
     reparsed = minidom.parseString(rough_string)
-    pretty_xml = reparsed.toprettyxml(indent="  ", encoding="UTF-8").decode("UTF-8")
+    pretty_xml = reparsed.toprettyxml(indent="  ", encoding="utf-8")
 
-    # Remove extra blank lines
-    lines = [line for line in pretty_xml.split("\n") if line.strip()]
-    pretty_xml = "\n".join(lines) + "\n"
-
-    # Write to file
-    os.makedirs(os.path.dirname(OUTPUT_FILE), exist_ok=True)
-    with open(OUTPUT_FILE, "w", encoding="UTF-8") as f:
+    os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
+    with open(output_path, "wb") as f:
         f.write(pretty_xml)
 
-    print(f"Generated sitemap with {len(html_files)} URLs")
-    print(f"Output: {OUTPUT_FILE}")
+    detail_count = total - 2 - len(regions)
+    print("[sitemap] 总计 {total} 条 URL（首页 1 + 关于页 1 + 地区页 {nr} + 详情页 {nd}），已写入: {path}".format(
+        total=total,
+        nr=len(regions),
+        nd=detail_count,
+        path=output_path,
+    ))
+
+
+def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="生成 Bing 壁纸 sitemap.xml")
+    parser.add_argument(
+        "region",
+        nargs="?",
+        default=None,
+        help="指定地区（如 zh-CN），不指定则生成所有地区",
+    )
+    parser.add_argument(
+        "-o", "--output",
+        default=DEFAULT_OUTPUT,
+        help="输出文件路径，默认 static/sitemap.xml",
+    )
+    args = parser.parse_args()
+
+    # 确定地区列表
+    if args.region:
+        if args.region not in REGIONS:
+            print("[error] 未知地区: {r}，支持的地区: {regions}".format(
+                r=args.region, regions=", ".join(REGIONS)
+            ))
+            sys.exit(1)
+        regions = [args.region]
+    else:
+        regions = REGIONS
+
+    output_path = args.output
+    print("[sitemap] 生成地区: {regions}".format(regions=", ".join(regions)))
+    generate_sitemap(regions, output_path)
+
 
 if __name__ == "__main__":
-    generate_sitemap()
+    main()

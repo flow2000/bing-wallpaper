@@ -4,7 +4,7 @@ name: generate-sitemap
 
 on:
   schedule:
-    # 每天各时区 00:12（比 bing-wallpaper-api-push 对应时区的 00:02 迟 10 分钟）
+    # 每天各时区 00:12（比 bing-wallpaper-api 数据更新对应时区的 00:02 迟 10 分钟）
     - cron: '12 0 * * *'
       timezone: Asia/Shanghai
     - cron: '12 0 * * *'
@@ -36,10 +36,13 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.x'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install requests
 
       - name: Generate sitemap.xml
-        run: |
-          python scripts/generate_sitemap.py
+        run: python scripts/generate_sitemap.py
 
       - name: Commit sitemap.xml
         run: |
@@ -53,3 +56,10 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ github.ref_name }}
+
+      - name: Submit to search engines
+        if: always()
+        continue-on-error: true
+        env:
+          BAIDU_TOKEN: ${{ secrets.BAIDU_TOKEN }}
+        run: python scripts/submit_seo.py
