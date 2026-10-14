@@ -129,9 +129,6 @@
               <i class="el-icon-link">枫叶</i>
             </a>
           </span>
-          <a target="_blank" href="https://v6.51.la/s/W8n3xjD4r3Vjfl6" rel="noopener" class="stats-link">
-            <img src="https://sdk.51.la/icon/1-1.png" alt="51la" class="stats-icon">
-          </a>
         </span>
       </div>
     </footer>

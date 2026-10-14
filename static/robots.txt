@@ -1,5 +1,3 @@
 User-agent: *
 Allow: /
 Disallow: /api/
-
-Sitemap: https://bimg.cc/sitemap.xml
