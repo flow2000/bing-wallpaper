@@ -1,10 +1,10 @@
-permissions:
+﻿permissions:
   contents: write
 name: update-sitemap-ja-JP
 
 on:
   schedule:
-    # 每天东京时间 00:12（比 bing-wallpaper-api 数据更新对应时区的 00:02 迟 10 分钟）
+    # 每天东京时间 00:13（比 bing-wallpaper-api 数据更新的 00:08 迟 5 分钟）
     - cron: '13 0 * * *'
       timezone: Asia/Tokyo
   workflow_dispatch:
@@ -15,7 +15,6 @@ on:
 jobs:
   update-sitemap:
     runs-on: ubuntu-latest
-    # 所有分地区任务共用同一并发组，串行执行，避免互相覆盖
     concurrency:
       group: bing-wallpaper-sitemap
       cancel-in-progress: false
@@ -23,33 +22,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Run sitemap pipeline
+        uses: ./.github/actions/sitemap-pipeline
         with:
-          python-version: 3.9.12
-
-      - name: Install Requirements
-        run: pip install requests
-
-      - name: Generate sitemap.xml
-        run: python scripts/generate_sitemap.py
-
-      - name: Commit sitemap.xml
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add static/sitemap.xml
-          git diff --quiet && git diff --staged --quiet || git commit -m "update sitemap.xml (ja-JP)"
-
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: master
-
-      - name: Submit to search engines
-        if: always()
-        continue-on-error: true
-        env:
-          BAIDU_TOKEN: ${{ secrets.BAIDU_TOKEN }}
-        run: python scripts/submit_seo.py
+          region: ja-JP
+          baidu-token: ${{ secrets.BAIDU_TOKEN }}
