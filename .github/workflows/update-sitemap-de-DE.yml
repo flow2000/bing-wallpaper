@@ -5,7 +5,7 @@ name: update-sitemap-de-DE
 on:
   schedule:
     # 每天柏林时间 00:12（比 bing-wallpaper-api 数据更新对应时区的 00:02 迟 10 分钟）
-    - cron: '12 0 * * *'
+    - cron: '25 0 * * *'
       timezone: Europe/Berlin
   workflow_dispatch:
   repository_dispatch:
