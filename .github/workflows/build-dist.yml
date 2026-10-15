@@ -1,0 +1,58 @@
+name: build-dist
+
+# 在 GitHub Actions 中完成 webpack 打包 + 预渲染，将产物 dist/ 提交回仓库，
+# Netlify / Vercel 只负责发布静态文件，不再执行 npm run build。
+permissions:
+  contents: write
+
+on:
+  push:
+    branches: [master, pure]
+    # dist/ 提交不再触发构建，避免循环；纯文档/图片修改也无需重建
+    paths-ignore:
+      - 'dist/**'
+      - 'README.md'
+      - 'img/**'
+  workflow_dispatch:
+
+# 同一分支串行构建，避免并发推送互相覆盖
+concurrency:
+  group: build-dist-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 16
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Clean previous dist
+        run: rm -rf dist
+
+      - name: Build (webpack + prerender)
+        run: npm run build
+
+      - name: Commit and push dist
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git add -A dist
+          if git diff --staged --quiet; then
+            echo "dist 无变化，跳过提交"
+          else
+            git commit -m "chore(build): 预构建静态文件 dist（GitHub Actions）"
+            git pull --rebase origin "${GITHUB_REF_NAME}"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
