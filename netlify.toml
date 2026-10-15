@@ -1,6 +1,7 @@
 [build]
   publish = "dist"
-  command = "npm run build"
+  # dist/ 已由 GitHub Actions 预构建并提交到仓库，平台仅发布静态文件
+  command = "echo pre-built by GitHub Actions"
 
 [build.processing]
   [build.processing.html]
