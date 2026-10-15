@@ -1,5 +1,6 @@
 {
-  "buildCommand": "npm run build",
+  "buildCommand": "echo pre-built by GitHub Actions",
+  "installCommand": "echo skip",
   "outputDirectory": "dist",
   "rewrites": [
     {
