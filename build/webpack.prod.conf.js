@@ -126,6 +126,11 @@ const webpackConfig = merge(baseWebpackConfig, {
         from: path.resolve(__dirname, '../static/_redirects'),
         to: '_redirects',
         toType: 'file'
+      },
+      {
+        from: path.resolve(__dirname, '../static/_headers'),
+        to: '_headers',
+        toType: 'file'
       }
     ])
   ]
