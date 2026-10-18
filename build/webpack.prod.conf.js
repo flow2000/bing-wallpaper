@@ -123,11 +123,6 @@ const webpackConfig = merge(baseWebpackConfig, {
         to: 'robots.txt'
       },
       {
-        from: path.resolve(__dirname, '../static/_redirects'),
-        to: '_redirects',
-        toType: 'file'
-      },
-      {
         from: path.resolve(__dirname, '../static/_headers'),
         to: '_headers',
         toType: 'file'
