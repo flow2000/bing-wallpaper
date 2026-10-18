@@ -6,3 +6,9 @@
 [build.processing]
   [build.processing.html]
     pretty_urls = false
+
+# SPA 回退：未匹配到静态文件时返回 index.html（由 vue-router 接管）
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

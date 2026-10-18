@@ -1,6 +1,10 @@
 # Cloudflare Workers 静态资源部署配置
 # 部署方式：wrangler deploy
 # assets.directory 只发布预构建的 dist/，避免 node_modules 被当作资源上传
+# not_found_handling 由 Workers 原生处理 SPA 回退，无需在 _redirects 中写 catch-all
 name = "bing-wallpaper"
 compatibility_date = "2024-09-01"
-assets = { directory = "dist" }
+
+[assets]
+directory = "dist"
+not_found_handling = "single-page-application"
