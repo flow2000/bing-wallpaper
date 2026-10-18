@@ -4,6 +4,22 @@
 <head>
   <meta charset="utf-8">
   <meta name="author" content="心流">
+  <script>
+    // 兼容补丁：部分第三方统计/录屏 SDK（如 51.la screenRecord）在点击事件中
+    // 调用 window.getSelection().getRangeAt(0) 但未校验 rangeCount，点击按钮等
+    // 无文本选中场景下会抛 IndexSizeError。这里在空选区时返回折叠 Range，避免报错。
+    (function () {
+      var originalGetRangeAt = Selection.prototype.getRangeAt;
+      Selection.prototype.getRangeAt = function (index) {
+        if (index >= this.rangeCount) {
+          var range = document.createRange();
+          try { range.collapse(true); } catch (e) {}
+          return range;
+        }
+        return originalGetRangeAt.call(this, index);
+      };
+    })();
+  </script>
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
