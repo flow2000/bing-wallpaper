@@ -5,7 +5,7 @@
 
   [build.environment]
     # webpack 3 在 Node 17+ 需要 openssl-legacy-provider（md4 hash）
-    NODE_VERSION = "20"
+    NODE_VERSION = "24"
     NODE_OPTIONS = "--openssl-legacy-provider"
 
 [build.processing]

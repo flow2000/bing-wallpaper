@@ -57,7 +57,7 @@
     "webpack-merge": "^4.1.0"
   },
   "engines": {
-    "node": ">=16 <21",
+    "node": "24.x",
     "npm": ">= 9.0.0"
   },
   "config": {
