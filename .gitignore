@@ -16,3 +16,5 @@ __pycache__/
 *.sln
 
 51la_analytics.py
+
+static/sitemap.xml
