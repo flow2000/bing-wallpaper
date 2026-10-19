@@ -1,13 +1,19 @@
 [build]
   publish = "dist"
-  # dist/ 已由 GitHub Actions 预构建并提交到仓库，平台仅发布静态文件
-  command = "echo pre-built by GitHub Actions"
+  # 平台端构建：npm ci 使用仓库内 package-lock.json 保证依赖可复现
+  command = "npm ci && npm run build"
+
+  [build.environment]
+    # webpack 3 在 Node 17+ 需要 openssl-legacy-provider（md4 hash）
+    NODE_VERSION = "20"
+    NODE_OPTIONS = "--openssl-legacy-provider"
 
 [build.processing]
   [build.processing.html]
     pretty_urls = false
 
 # SPA 回退：未匹配到静态文件时返回 index.html（由 vue-router 接管）
+# 已预渲染的 region/*.html、wallpaper/detail/*.html 为真实文件，优先于该规则
 [[redirects]]
   from = "/*"
   to = "/index.html"

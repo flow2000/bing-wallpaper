@@ -1,7 +1,12 @@
 {
-  "buildCommand": "echo pre-built by GitHub Actions",
-  "installCommand": "echo skip",
+  "buildCommand": "npm run build",
+  "installCommand": "npm ci",
   "outputDirectory": "dist",
+  "build": {
+    "env": {
+      "NODE_OPTIONS": "--openssl-legacy-provider"
+    }
+  },
   "rewrites": [
     {
       "source": "/wallpaper/detail/:path*",
