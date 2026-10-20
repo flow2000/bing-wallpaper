@@ -1,8 +1,11 @@
 .DS_Store
 node_modules/
+dist/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+__pycache__/
+.trae-html-share-packages/
 
 # Editor directories and files
 .idea
@@ -11,4 +14,8 @@ yarn-error.log*
 *.ntvs*
 *.njsproj
 *.sln
-package-lock.json
+
+# ---- 仅 pure 分支：站点验证文件不随 pure 发布（master 追踪这些文件） ----
+# 在 master 检出/合并时这些文件会出现在工作区，忽略以避免误提交到 pure
+static/7fceb212b40246d69ee07027523c9f0a.txt
+static/baidu_verify_codeva-1urA4GE3Sf.html
