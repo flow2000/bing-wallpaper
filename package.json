@@ -7,7 +7,6 @@
   "scripts": {
     "dev": "webpack-dev-server --inline --progress --config build/webpack.dev.conf.js",
     "start": "npm run dev",
-    "prebuild": "node scripts/fetch_sitemap.js",
     "build": "node build/build.js"
   },
   "dependencies": {

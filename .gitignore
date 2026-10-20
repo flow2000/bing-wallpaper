@@ -14,7 +14,3 @@ __pycache__/
 *.ntvs*
 *.njsproj
 *.sln
-
-51la_analytics.py
-
-static/sitemap.xml
