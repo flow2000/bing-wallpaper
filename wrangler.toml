@@ -14,3 +14,16 @@ command = "npm ci && NODE_OPTIONS=--openssl-legacy-provider npm run build"
 [assets]
 directory = "dist"
 not_found_handling = "single-page-application"
+
+[observability]
+enabled = true
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+
+[observability.traces]
+enabled = true
+persist = true
+head_sampling_rate = 1

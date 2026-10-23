@@ -5,6 +5,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 __pycache__/
+.history/
 .trae-html-share-packages/
 
 # Editor directories and files
