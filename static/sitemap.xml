@@ -20,7 +20,7 @@
   </url>
   <url>
     <loc>https://bimg.cc/region/en-US.html</loc>
-    <lastmod>2026-10-23</lastmod>
+    <lastmod>2026-10-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
@@ -23343,6 +23343,12 @@
   <url>
     <loc>https://bimg.cc/wallpaper/detail/zh-CN-1.html</loc>
     <lastmod>2016-03-05</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://bimg.cc/wallpaper/detail/en-US-1636.html</loc>
+    <lastmod>2026-10-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.8</priority>
   </url>
