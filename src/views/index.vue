@@ -140,6 +140,7 @@
 
 <script>
 import { setLocale, getLocale } from '@/locale'
+import { applyRouteSEO } from '@/router'
 
 export default {
   name: 'App',
@@ -174,6 +175,13 @@ export default {
   },
   mounted() {
     this.initVisitorCount();
+  },
+
+  watch: {
+    // 语言切换后刷新当前路由的 SEO 元信息（title/meta/JSON-LD）
+    '$i18n.locale'() {
+      applyRouteSEO(this.$route)
+    }
   },
   methods: {
     handleSelect(key, keyPath) {

@@ -57,7 +57,8 @@ const router = new Router({
   }]
 })
 
-router.afterEach((to) => {
+// 按路由 meta 应用基础 SEO（afterEach 与语言切换后复用）
+export function applyRouteSEO(to) {
   removeJsonLd('wallpaper-jsonld')
   removeJsonLd('region-jsonld')
 
@@ -86,6 +87,10 @@ router.afterEach((to) => {
     })
     removeJsonLd('site-jsonld')
   }
+}
+
+router.afterEach((to) => {
+  applyRouteSEO(to)
 
   window.scrollTo(0, 0)
 })

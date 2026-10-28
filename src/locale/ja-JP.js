@@ -142,6 +142,8 @@ export default {
     detailSeoDesc: '{title}。{copyright} 公開日：{date}{region}。Bing壁紙は4K、1920x1080などの解像度で無料ダウンロードを提供。',
     detailSeoKeywords: '{title},{region} Bing壁紙,HD壁紙ダウンロード,bing wallpaper,{date}',
     detailSeoKeywordsNoRegion: '{title},Bing壁紙,HD壁紙ダウンロード,bing wallpaper,{date}',
+    detailSeoTitleNoRegion: '{title} - Bing壁紙HDダウンロード',
+    detailSeoFromRegion: '、{name}から',
     siteJsonLdDesc: 'Bing壁紙ダウンロードサイト。Microsoft BingのデイリーHD壁紙を提供し、多地域・多解像度の閲覧とダウンロードに対応。',
     regionJsonLdDesc: '{name}地域のBingデイリーHD壁紙ダウンロード。4K、1920x1080などの解像度に対応。',
     breadcrumbHome: 'ホーム',

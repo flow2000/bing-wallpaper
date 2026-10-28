@@ -69,7 +69,7 @@
       <!-- 筛选状态提示 -->
       <div class="filter-status" v-if="isFiltering">
         <el-tag type="info" closable @close="clearFilters">
-          {{ $t('wallpaper.currentFilter') }}：{{ getFilterStatusText() }}
+          {{ $t('wallpaper.currentFilter') }}{{ labelColon }}{{ getFilterStatusText() }}
         </el-tag>
         <span class="result-count" v-html="$t('wallpaper.totalWallpapers', { count: '<strong>' + total + '</strong>' })"></span>
         
@@ -330,6 +330,11 @@ export default {
       return raw
         .replace(/\{strong\}/g, '<strong>')
         .replace(/\{\/strong\}/g, '</strong>')
+    },
+
+    // 中文/日文使用全角冒号，其他语言使用半角冒号
+    labelColon() {
+      return ['zh-CN', 'ja-JP'].includes(this.$i18n.locale) ? '：' : ': '
     }
   },
 
@@ -362,6 +367,16 @@ export default {
           removeJsonLd('region-jsonld');
         }
         this.fetchWallpapers();
+      }
+    },
+    // 语言切换后按新语言重新应用地区 SEO
+    '$i18n.locale'() {
+      const region = this.stripHtml(this.region);
+      if (region) {
+        const regionOption = this.regionOptions.find(r => r.value === region);
+        if (regionOption) {
+          this.applyRegionSEO(regionOption.label, region);
+        }
       }
     }
   },
@@ -553,7 +568,7 @@ export default {
           }
           this.resetPreviewLoading();
         } else {
-          this.$message.error(this.$t('wallpaper.fetchFailed') + '：' + ((response.data && response.data.msg) || this.$t('wallpaper.unknownError')));
+          this.$message.error(this.$t('wallpaper.fetchFailed') + this.labelColon + ((response.data && response.data.msg) || this.$t('wallpaper.unknownError')));
         }
       } catch (error) {
         console.error('Fetch wallpapers failed:', error);
@@ -608,21 +623,22 @@ export default {
     
     getFilterStatusText() {
       const parts = [];
-      
+
       if (this.filterForm.region) {
         const region = this.regionOptions.find(r => r.value === this.filterForm.region);
-        parts.push(`${this.$t('wallpaper.filterRegion')}：${region ? region.label : this.filterForm.region}`);
+        parts.push(`${this.$t('wallpaper.filterRegion')}${this.labelColon}${region ? region.label : this.filterForm.region}`);
       }
-      
+
       if (this.filterForm.year) {
-        parts.push(`${this.$t('wallpaper.filterYear')}：${this.filterForm.year}${this.$t('wallpaper.yearSuffix')}`);
+        parts.push(`${this.$t('wallpaper.filterYear')}${this.labelColon}${this.filterForm.year}${this.$t('wallpaper.yearSuffix')}`);
       }
-      
+
       if (this.selectedResolution) {
-        parts.push(`${this.$t('wallpaper.filterResolution')}：${this.selectedResolution}`);
+        parts.push(`${this.$t('wallpaper.filterResolution')}${this.labelColon}${this.selectedResolution}`);
       }
-      
-      return parts.join(this.$i18n.locale === 'zh-CN' ? '，' : ', ');
+
+      const joiner = ['zh-CN', 'ja-JP'].includes(this.$i18n.locale) ? '，' : ', ';
+      return parts.join(joiner);
     },
     
     clearFilters() {

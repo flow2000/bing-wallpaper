@@ -66,6 +66,7 @@ export function updateSEO({ title, description, keywords, path, image, type = 'w
   setMeta('property', 'og:type', type);
   setMeta('property', 'og:image', img);
   setMeta('property', 'og:site_name', siteName);
+  setMeta('property', 'og:locale', i18n.locale.replace('-', '_'));
 
   setMeta('name', 'twitter:card', 'summary_large_image');
   setMeta('name', 'twitter:title', fullTitle);

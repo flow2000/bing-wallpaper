@@ -142,6 +142,8 @@ export default {
     detailSeoDesc: '{title}. {copyright} Publié le {date}{region}. Bing Wallpaper offre 4K, 1920x1080 et d\'autres résolutions en téléchargement gratuit.',
     detailSeoKeywords: '{title},{region} Bing Wallpaper,téléchargement fond d\'écran HD,bing wallpaper,{date}',
     detailSeoKeywordsNoRegion: '{title},Bing Wallpaper,téléchargement fond d\'écran HD,bing wallpaper,{date}',
+    detailSeoTitleNoRegion: '{title} - Bing Wallpaper HD Télécharger',
+    detailSeoFromRegion: ', région : {name}',
     siteJsonLdDesc: 'Site de téléchargement Bing Wallpaper, fournissant des fonds d\'écran HD quotidiens Microsoft Bing, supportant la navigation et le téléchargement multi-régions et multi-résolutions.',
     regionJsonLdDesc: 'Téléchargement de fonds d\'écran Bing HD quotidiens région {name}, supportant 4K, 1920x1080 et d\'autres résolutions.',
     breadcrumbHome: 'Accueil',

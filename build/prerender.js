@@ -5,13 +5,17 @@
  * 用途：为 SPA 生成带真实 <h1>、meta、canonical、JSON-LD 的静态 HTML，
  * 让 Bing 等搜索引擎无需执行 JS 也能识别页面标题与内容，解决「缺少 h1 标记」。
  *
+ * 国际化：每个地区的页面使用该地区语言的 SEO 文案（标题/描述/关键词/JSON-LD/正文），
+ * 与 src/locale 中对应语言的 seo.* 文案保持一致，并同步设置 <html lang> 与 og:locale，
+ * 避免非中文页面混入中文（如英文标题后接「必应壁纸」）。
+ *
  * 数据来源：从 bing-wallpaper-api 仓库的 data 目录直接拉取完整 JSON 文件
  *         （一次请求获取全部数据，比分页 API 快很多）
  *
  * 生成页面：
- *  - /about.html
- *  - /region/{region}.html          (9 个地区页)
- *  - /wallpaper/detail/{region}-{id}.html  (全部详情页)
+ *  - /about.html                       (站点默认中文)
+ *  - /region/{region}.html             (9 个地区页，按地区语言)
+ *  - /wallpaper/detail/{region}-{id}.html  (全部详情页，按地区语言)
  *
  * 首页 /index.html 由 webpack 直接产出，已在模板中内置兜底 <h1>。
  */
@@ -22,24 +26,130 @@ const axios = require('axios')
 const chalk = require('chalk')
 
 const SITE_URL = 'https://bimg.cc'
-const SITE_NAME = '必应壁纸'
 const DATA_BASE_URL = 'https://raw.githubusercontent.com/flow2000/bing-wallpaper-api/master/data'
 const DIST = path.resolve(__dirname, '../dist')
 
-const REGIONS = {
-  'zh-CN': '中国',
-  'en-US': '美国',
-  'de-DE': '德国',
-  'ja-JP': '日本',
-  'en-GB': '英国',
-  'fr-FR': '法国',
-  'it-IT': '意大利',
-  'en-CA': '加拿大',
-  'en-IN': '印度'
+// 英文公共文案（en-US / en-GB / en-CA / en-IN 共用）
+const EN = {
+  siteName: 'Bing Wallpaper',
+  detailTitle: '{title} - {region} Bing Wallpaper HD Download',
+  detailDesc: '{title}. {copyright} Published on {date}{region}. Bing Wallpaper offers 4K, 1920x1080 and other resolutions for free download.',
+  detailFromRegion: ', from {name}',
+  detailKeywords: '{title},{region} Bing Wallpaper,HD wallpaper download,bing wallpaper,{date}',
+  regionTitle: '{name} Bing Wallpaper - {name} Daily HD Wallpaper Download',
+  regionDesc: '{name} Bing Wallpaper download, providing Microsoft Bing {name} region daily HD wallpapers, supporting 4K, 1920x1080 and other resolutions, free HD desktop wallpaper downloads.',
+  regionKeywords: '{name} Bing Wallpaper,{name} wallpaper,Bing Wallpaper,HD wallpaper download',
+  breadcrumbHome: 'Home',
+  breadcrumbRegion: '{name} Bing Wallpaper',
+  publishDateLabel: 'Published: ',
+  regionLabel: 'Region: ',
+  viewOriginal: 'View Original',
+  backHome: 'Back to Home'
 }
 
-const DEFAULT_DESC = '必应壁纸(Bing Wallpaper)下载站，提供微软必应每日高清壁纸，支持中国、美国、日本、德国、英国、法国等9个国家地区的必应壁纸浏览与下载，提供4K、1920x1080等多种分辨率，一键批量下载全年壁纸。'
-const DEFAULT_KEYWORDS = '必应壁纸,bing壁纸,必应每日壁纸,必应高清壁纸下载,微软Bing壁纸,Bing Wallpaper,高清壁纸,电脑壁纸,4K壁纸,壁纸下载'
+// 各地区 SEO 文案（key 为地区代码，与 src/locale 一致）
+const LOCALES = {
+  'zh-CN': {
+    htmlLang: 'zh-CN',
+    ogLocale: 'zh_CN',
+    siteName: '必应壁纸',
+    regionName: '中国',
+    detailTitle: '{title} - {region}必应壁纸高清下载',
+    detailDesc: '{title}。{copyright} 发布于{date}{region}。必应壁纸提供4K、1920x1080等多种分辨率免费下载。',
+    detailFromRegion: '，来自{name}地区',
+    detailKeywords: '{title},{region}必应壁纸,高清壁纸下载,bing wallpaper,{date}',
+    regionTitle: '{name}必应壁纸 - {name}地区每日高清壁纸下载',
+    regionDesc: '{name}必应壁纸下载，提供微软必应{name}地区每日高清壁纸，支持4K、1920x1080等多种分辨率，免费下载高清电脑壁纸。',
+    regionKeywords: '{name}必应壁纸,{name}壁纸,必应壁纸,高清壁纸下载',
+    breadcrumbHome: '首页',
+    breadcrumbRegion: '{name}必应壁纸',
+    publishDateLabel: '发布日期：',
+    regionLabel: '地区：',
+    viewOriginal: '查看原图',
+    backHome: '返回首页',
+    defaultKeywords: '必应壁纸,bing壁纸,必应每日壁纸,必应高清壁纸下载,微软Bing壁纸,Bing Wallpaper,高清壁纸,电脑壁纸,4K壁纸,壁纸下载'
+  },
+  'en-US': Object.assign({ htmlLang: 'en-US', ogLocale: 'en_US', regionName: 'USA' }, EN),
+  'en-GB': Object.assign({ htmlLang: 'en-GB', ogLocale: 'en_GB', regionName: 'United Kingdom' }, EN),
+  'en-CA': Object.assign({ htmlLang: 'en-CA', ogLocale: 'en_CA', regionName: 'Canada' }, EN),
+  'en-IN': Object.assign({ htmlLang: 'en-IN', ogLocale: 'en_IN', regionName: 'India' }, EN),
+  'ja-JP': {
+    htmlLang: 'ja-JP',
+    ogLocale: 'ja_JP',
+    siteName: 'Bing壁紙',
+    regionName: '日本',
+    detailTitle: '{title} - {region} Bing壁紙HDダウンロード',
+    detailDesc: '{title}。{copyright} 公開日：{date}{region}。Bing壁紙は4K、1920x1080などの解像度で無料ダウンロードを提供。',
+    detailFromRegion: '、{name}から',
+    detailKeywords: '{title},{region} Bing壁紙,HD壁紙ダウンロード,bing wallpaper,{date}',
+    regionTitle: '{name} Bing壁紙 - {name}デイリーHD壁紙ダウンロード',
+    regionDesc: '{name} Bing壁紙ダウンロード。Microsoft Bing {name}地域のデイリーHD壁紙を提供し、4K、1920x1080などの解像度に対応。無料HDデスクトップ壁紙ダウンロード。',
+    regionKeywords: '{name} Bing壁紙,{name}壁紙,Bing壁紙,HD壁紙ダウンロード',
+    breadcrumbHome: 'ホーム',
+    breadcrumbRegion: '{name} Bing壁紙',
+    publishDateLabel: '公開日：',
+    regionLabel: '地域：',
+    viewOriginal: '元画像を表示',
+    backHome: 'ホームに戻る'
+  },
+  'de-DE': {
+    htmlLang: 'de-DE',
+    ogLocale: 'de_DE',
+    siteName: 'Bing Wallpaper',
+    regionName: 'Deutschland',
+    detailTitle: '{title} - {region} Bing Wallpaper HD Download',
+    detailDesc: '{title}. {copyright} Veröffentlicht am {date}{region}. Bing Wallpaper bietet 4K, 1920x1080 und weitere Auflösungen zum kostenlosen Download.',
+    detailFromRegion: ', aus {name}',
+    detailKeywords: '{title},{region} Bing Wallpaper,HD Wallpaper Download,bing wallpaper,{date}',
+    regionTitle: '{name} Bing Wallpaper - {name} tägliche HD-Wallpaper-Download',
+    regionDesc: '{name} Bing Wallpaper-Download. Bietet Microsoft Bing {name} regionale tägliche HD-Wallpaper, unterstützt 4K, 1920x1080 und weitere Auflösungen. Kostenloser HD-Desktop-Wallpaper-Download.',
+    regionKeywords: '{name} Bing Wallpaper,{name} Wallpaper,Bing Wallpaper,HD Wallpaper Download',
+    breadcrumbHome: 'Startseite',
+    breadcrumbRegion: '{name} Bing Wallpaper',
+    publishDateLabel: 'Veröffentlicht am ',
+    regionLabel: 'Region: ',
+    viewOriginal: 'Original ansehen',
+    backHome: 'Zur Startseite'
+  },
+  'fr-FR': {
+    htmlLang: 'fr-FR',
+    ogLocale: 'fr_FR',
+    siteName: 'Bing Wallpaper',
+    regionName: 'France',
+    detailTitle: '{title} - {region} Bing Wallpaper HD Télécharger',
+    detailDesc: '{title}. {copyright} Publié le {date}{region}. Bing Wallpaper offre 4K, 1920x1080 et d\'autres résolutions en téléchargement gratuit.',
+    detailFromRegion: ', région : {name}',
+    detailKeywords: '{title},{region} Bing Wallpaper,téléchargement fond d\'écran HD,bing wallpaper,{date}',
+    regionTitle: '{name} Bing Wallpaper - Télécharger fond d\'écran HD quotidien {name}',
+    regionDesc: 'Téléchargement {name} Bing Wallpaper, fournissant des fonds d\'écran HD quotidiens Microsoft Bing région {name}, supportant 4K, 1920x1080 et d\'autres résolutions, téléchargement gratuit de fonds d\'écran HD pour bureau.',
+    regionKeywords: '{name} Bing Wallpaper,fond d\'écran {name},Bing Wallpaper,téléchargement fond d\'écran HD',
+    breadcrumbHome: 'Accueil',
+    breadcrumbRegion: '{name} Bing Wallpaper',
+    publishDateLabel: 'Publié le ',
+    regionLabel: 'Région : ',
+    viewOriginal: 'Voir l\'original',
+    backHome: 'Retour à l\'accueil'
+  },
+  'it-IT': {
+    htmlLang: 'it-IT',
+    ogLocale: 'it_IT',
+    siteName: 'Bing Wallpaper',
+    regionName: 'Italia',
+    detailTitle: '{title} - {region} Bing Wallpaper HD Download',
+    detailDesc: '{title}. {copyright} Pubblicato il {date}{region}. Bing Wallpaper offre 4K, 1920x1080 e altre risoluzioni per download gratuito.',
+    detailFromRegion: ' (regione: {name})',
+    detailKeywords: '{title},{region} Bing Wallpaper,download sfondo HD,bing wallpaper,{date}',
+    regionTitle: '{name} Bing Wallpaper - Download sfondo HD giornaliero {name}',
+    regionDesc: 'Download {name} Bing Wallpaper, che fornisce sfondi HD giornalieri Microsoft Bing regione {name}, supportando 4K, 1920x1080 e altre risoluzioni, download gratuito di sfondi HD per desktop.',
+    regionKeywords: '{name} Bing Wallpaper,sfondo {name},Bing Wallpaper,download sfondo HD',
+    breadcrumbHome: 'Home',
+    breadcrumbRegion: '{name} Bing Wallpaper',
+    publishDateLabel: 'Pubblicato il ',
+    regionLabel: 'Regione: ',
+    viewOriginal: 'Vedi originale',
+    backHome: 'Torna alla home'
+  }
+}
 
 // 页面内嵌的预渲染样式，保证 JS 未执行时的可读性
 const PRERENDER_CSS =
@@ -58,6 +168,11 @@ function esc(s) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;')
+}
+
+// 简易模板插值：'{title} - {region}' + { title, region } -> 替换占位符
+function t(tpl, params) {
+  return String(tpl).replace(/\{(\w+)\}/g, (m, key) => (params && params[key] != null ? params[key] : m))
 }
 
 function delay(ms) {
@@ -109,13 +224,17 @@ function setJsonLd(html, data) {
 // 基于 dist/index.html 模板生成单页，替换 head 与 #app 内容
 function renderPage(base, opts) {
   let html = base
+  html = html.replace(/<html lang="[^"]*"/i, '<html lang="' + (opts.htmlLang || 'zh-CN') + '"')
   html = html.replace(/<title>[\s\S]*?<\/title>/, '<title>' + esc(opts.title) + '</title>')
   html = setMeta(html, 'name', 'description', opts.description)
-  html = setMeta(html, 'name', 'keywords', opts.keywords || DEFAULT_KEYWORDS)
+  html = setMeta(html, 'name', 'keywords', opts.keywords)
   html = setCanonical(html, opts.url)
+  html = setMeta(html, 'property', 'og:type', opts.type || 'website')
   html = setMeta(html, 'property', 'og:title', opts.title)
   html = setMeta(html, 'property', 'og:description', opts.description)
   html = setMeta(html, 'property', 'og:url', opts.url)
+  html = setMeta(html, 'property', 'og:locale', opts.ogLocale || 'zh_CN')
+  html = setMeta(html, 'property', 'og:site_name', opts.siteName || LOCALES['zh-CN'].siteName)
   html = setMeta(html, 'property', 'og:image', opts.image || SITE_URL + '/static/logo.png')
   html = setMeta(html, 'name', 'twitter:title', opts.title)
   html = setMeta(html, 'name', 'twitter:description', opts.description)
@@ -131,12 +250,19 @@ function renderPage(base, opts) {
 }
 
 // ---------- 详情页 ----------
-function renderDetail(base, w, code, name) {
-  const id = w.id
-  const url = SITE_URL + '/wallpaper/detail/' + code + '-' + id + '.html'
+function renderDetail(base, w, code) {
+  const L = LOCALES[code]
+  const name = L.regionName
+  const url = SITE_URL + '/wallpaper/detail/' + code + '-' + w.id + '.html'
   const desc1 = imageDescription(w.copyright)
-  const desc = w.title + '。' + (desc1 ? desc1 + ' ' : '') + (w.datetime ? '发布于' + w.datetime + '，' : '') +
-    (name ? '来自' + name + '地区。' : '') + '必应壁纸提供4K、1920x1080等多种分辨率免费下载。'
+  const title = t(L.detailTitle, { title: w.title, region: name }) + ' | ' + L.siteName
+  const description = t(L.detailDesc, {
+    title: w.title,
+    copyright: desc1 ? desc1 + ' ' : '',
+    date: w.datetime || '',
+    region: t(L.detailFromRegion, { name })
+  })
+  const keywords = t(L.detailKeywords, { title: w.title, region: name, date: w.datetime || '' })
 
   const jsonld = [
     {
@@ -149,88 +275,100 @@ function renderDetail(base, w, code, name) {
       datePublished: w.datetime,
       creator: { '@type': 'Organization', name: 'Microsoft Bing' },
       license: 'https://www.bing.com',
-      contentLocation: name
-        ? { '@type': 'Place', name: name, address: { '@type': 'PostalAddress', addressCountry: code } }
-        : undefined
+      contentLocation: {
+        '@type': 'Place',
+        name: name,
+        address: { '@type': 'PostalAddress', addressCountry: code }
+      }
     },
     {
       '@context': 'https://schema.org',
       '@type': 'BreadcrumbList',
       itemListElement: [
-        { '@type': 'ListItem', position: 1, name: '首页', item: SITE_URL + '/' },
-        { '@type': 'ListItem', position: 2, name: name + '必应壁纸', item: SITE_URL + '/region/' + code + '.html' },
+        { '@type': 'ListItem', position: 1, name: L.breadcrumbHome, item: SITE_URL + '/' },
+        { '@type': 'ListItem', position: 2, name: t(L.breadcrumbRegion, { name }), item: SITE_URL + '/region/' + code + '.html' },
         { '@type': 'ListItem', position: 3, name: w.title, item: url }
       ]
     }
-  ].map(o => {
-    // 去掉 undefined 字段，避免 JSON-LD 出现 null
-    return JSON.parse(JSON.stringify(o))
-  })
+  ]
 
   const content =
     '<div class="prerender-wrap">' +
     '<h1>' + esc(w.title) + '</h1>' +
     '<p class="desc">' + esc(w.copyright || '') + '</p>' +
     '<img src="' + esc(w.url) + '" alt="' + esc(w.title) + '">' +
-    '<p class="meta">发布日期：' + esc(w.datetime || '') + (name ? ' &nbsp;·&nbsp; 地区：' + esc(name) : '') + '</p>' +
-    '<a class="btn" href="' + esc(w.url) + '" rel="noopener">查看原图</a>' +
-    '<a class="btn gray" href="/">返回首页</a>' +
+    '<p class="meta">' + esc(L.publishDateLabel) + esc(w.datetime || '') +
+    ' &nbsp;·&nbsp; ' + esc(L.regionLabel) + esc(name) + '</p>' +
+    '<a class="btn" href="' + esc(w.url) + '" rel="noopener">' + esc(L.viewOriginal) + '</a>' +
+    '<a class="btn gray" href="/">' + esc(L.backHome) + '</a>' +
     '</div>'
-
-  const title = w.title + (name ? ' - ' + name + '必应壁纸' : '') + ' | ' + SITE_NAME
 
   return renderPage(base, {
     title,
-    description: desc,
+    description,
+    keywords,
     url,
     image: w.url,
+    type: 'article',
+    htmlLang: L.htmlLang,
+    ogLocale: L.ogLocale,
+    siteName: L.siteName,
     jsonld,
     content
   })
 }
 
 // ---------- 地区页 ----------
-function renderRegion(base, code, name) {
+function renderRegion(base, code) {
+  const L = LOCALES[code]
+  const name = L.regionName
   const url = SITE_URL + '/region/' + code + '.html'
-  const desc = name + '必应壁纸下载，提供微软必应' + name + '地区每日高清壁纸，支持4K、1920x1080等多种分辨率，免费下载高清电脑壁纸。'
+  const title = t(L.regionTitle, { name }) + ' | ' + L.siteName
+  const description = t(L.regionDesc, { name })
+  const keywords = t(L.regionKeywords, { name })
   const jsonld = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
-    name: name + '必应壁纸 - ' + SITE_NAME,
-    description: desc,
+    name: t(L.regionTitle, { name }),
+    description: description,
     url: url,
-    isPartOf: { '@type': 'WebSite', name: SITE_NAME, url: SITE_URL + '/' }
+    isPartOf: { '@type': 'WebSite', name: L.siteName, url: SITE_URL + '/' }
   }
   const content =
     '<div class="prerender-wrap">' +
-    '<h1>' + esc(name) + '必应壁纸 - 微软必应每日高清壁纸下载</h1>' +
-    '<p class="desc">' + esc(desc) + '</p>' +
-    '<a class="btn" href="/">返回首页</a>' +
+    '<h1>' + esc(t(L.regionTitle, { name })) + '</h1>' +
+    '<p class="desc">' + esc(description) + '</p>' +
+    '<a class="btn" href="/">' + esc(L.backHome) + '</a>' +
     '</div>'
 
   return renderPage(base, {
-    title: name + '必应壁纸 - ' + name + '地区每日高清壁纸下载 | ' + SITE_NAME,
-    description: desc,
-    keywords: name + '必应壁纸,' + name + '壁纸,必应壁纸,高清壁纸下载',
+    title,
+    description,
+    keywords,
     url,
     jsonld,
-    content
+    content,
+    htmlLang: L.htmlLang,
+    ogLocale: L.ogLocale,
+    siteName: L.siteName
   })
 }
 
-// ---------- 关于页 ----------
+// ---------- 关于页（站点默认中文） ----------
 function renderAbout(base) {
+  const L = LOCALES['zh-CN']
   const url = SITE_URL + '/about.html'
   const desc = '必应壁纸站点介绍，提供微软必应每日高清壁纸下载，支持多地区、多分辨率浏览与下载。本站所有图片均来自必应搜索，仅供学习和个人使用。'
   const content =
     '<div class="prerender-wrap">' +
     '<h1>关于必应壁纸</h1>' +
     '<p class="desc">一个精美的必应壁纸展示站点，提供丰富的壁纸浏览、筛选和下载功能。</p>' +
-    '<a class="btn" href="/">返回首页</a>' +
+    '<a class="btn" href="/">' + esc(L.backHome) + '</a>' +
     '</div>'
   return renderPage(base, {
-    title: '关于我们 | ' + SITE_NAME,
+    title: '关于我们 | ' + L.siteName,
     description: desc,
+    keywords: L.defaultKeywords,
     url,
     content
   })
@@ -279,10 +417,10 @@ async function main() {
 
   let totalDetail = 0
   let idx = 0
-  for (const code of Object.keys(REGIONS)) {
+  for (const code of Object.keys(LOCALES)) {
     // 地区之间加短延迟，避免请求过于集中
     if (idx++ > 0) await delay(200)
-    const name = REGIONS[code]
+    const name = LOCALES[code].regionName
     process.stdout.write(chalk.cyan('  拉取 ' + code + ' (' + name + ') ... '))
     let items
     try {
@@ -291,9 +429,9 @@ async function main() {
       console.log(chalk.red('失败，跳过：' + e.message))
       continue
     }
-    writePage(path.join('region', code + '.html'), renderRegion(base, code, name))
+    writePage(path.join('region', code + '.html'), renderRegion(base, code))
     for (const w of items) {
-      writePage(path.join('wallpaper', 'detail', code + '-' + w.id + '.html'), renderDetail(base, w, code, name))
+      writePage(path.join('wallpaper', 'detail', code + '-' + w.id + '.html'), renderDetail(base, w, code))
     }
     totalDetail += items.length
     console.log(chalk.green(items.length + ' 张壁纸已生成'))
@@ -304,7 +442,7 @@ async function main() {
 
 module.exports = function prerender() {
   return main().then(totalDetail => {
-    console.log(chalk.green('\n  预渲染完成：关于页 1 + 地区页 ' + Object.keys(REGIONS).length +
+    console.log(chalk.green('\n  预渲染完成：关于页 1 + 地区页 ' + Object.keys(LOCALES).length +
       ' + 详情页 ' + totalDetail + ' 页\n'))
   })
 }

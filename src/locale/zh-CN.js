@@ -142,6 +142,8 @@ export default {
     detailSeoDesc: '{title}。{copyright} 发布于{date}{region}。必应壁纸提供4K、1920x1080等多种分辨率免费下载。',
     detailSeoKeywords: '{title},{region}必应壁纸,高清壁纸下载,bing wallpaper,{date}',
     detailSeoKeywordsNoRegion: '{title},必应壁纸,高清壁纸下载,bing wallpaper,{date}',
+    detailSeoTitleNoRegion: '{title} - 必应壁纸高清下载',
+    detailSeoFromRegion: '，来自{name}地区',
     siteJsonLdDesc: '必应壁纸下载站，提供微软必应每日高清壁纸，支持多地区、多分辨率浏览与下载。',
     regionJsonLdDesc: '{name}地区的必应每日高清壁纸下载，支持4K、1920x1080等多种分辨率。',
     breadcrumbHome: '首页',

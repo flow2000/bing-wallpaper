@@ -322,6 +322,14 @@ export default {
         this.loadWallpaperDetail();
         window.scrollTo(0, 0);
       }
+    },
+    '$i18n.locale'() {
+      if (this.regionCode) {
+        this.regionName = this.getRegionName(this.regionCode);
+      }
+      if (this.wallpaperData) {
+        this.applyDetailSEO(this.wallpaperData);
+      }
     }
   },
 
@@ -529,9 +537,12 @@ export default {
 
     applyDetailSEO(wallpaper) {
       if (!wallpaper) return;
-      const regionPart = this.regionName ? this.$t('seo.detailSeoTitle', { title: '', region: this.regionName }).replace(/^ - /, '') + '，' : '';
-      const title = this.$t('seo.detailSeoTitle', { title: wallpaper.title, region: this.regionName ? this.regionName + '必应壁纸' : '必应壁纸' })
-      const regionText = this.regionName ? this.$i18n.locale === 'zh-CN' ? `，来自${this.regionName}地区` : `, from ${this.regionName}` : ''
+      const title = this.regionName
+        ? this.$t('seo.detailSeoTitle', { title: wallpaper.title, region: this.regionName })
+        : this.$t('seo.detailSeoTitleNoRegion', { title: wallpaper.title });
+      const regionText = this.regionName
+        ? this.$t('seo.detailSeoFromRegion', { name: this.regionName })
+        : '';
       const description = this.$t('seo.detailSeoDesc', {
         title: wallpaper.title,
         copyright: wallpaper.copyright || '',
