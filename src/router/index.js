@@ -38,6 +38,7 @@ const router = new Router({
       redirect: '/',
     }, {
       path: '/about.html',
+      alias: '/about',
       name: 'about',
       component: about,
       meta: {
