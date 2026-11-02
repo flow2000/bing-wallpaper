@@ -330,9 +330,12 @@ html, body {
 }
 
 .nav-menu .el-menu-item:hover,
-.nav-menu .el-submenu__title:hover {
+.nav-menu .el-menu-item:focus,
+.nav-menu .el-submenu__title:hover,
+.nav-menu .el-submenu__title:focus {
   background: rgba(255, 255, 255, 0.15) !important;
   color: #fff !important;
+  outline: none;
 }
 
 .nav-menu .el-menu-item.is-active {
