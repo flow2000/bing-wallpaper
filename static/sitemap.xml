@@ -38,7 +38,7 @@
   </url>
   <url>
     <loc>https://bimg.cc/region/en-GB.html</loc>
-    <lastmod>2026-11-09</lastmod>
+    <lastmod>2026-11-10</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
@@ -53175,6 +53175,12 @@
   <url>
     <loc>https://bimg.cc/wallpaper/detail/de-DE-1.html</loc>
     <lastmod>2022-04-28</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://bimg.cc/wallpaper/detail/en-GB-1654.html</loc>
+    <lastmod>2026-11-10</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.8</priority>
   </url>
