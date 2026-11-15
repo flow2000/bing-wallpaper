@@ -4,6 +4,7 @@ export default {
     home: 'Accueil',
     about: 'À propos',
     blog: 'Blog',
+    amazing: 'Globe',
     refresh: 'Actualiser la page',
     loading: 'Chargement...',
     year: '',
@@ -133,6 +134,8 @@ export default {
     regionDescription: 'Parcourez et téléchargez des fonds d\'écran Bing HD quotidiens régionaux, supportant la Chine, les États-Unis, le Japon, l\'Allemagne, le Royaume-Uni, la France, l\'Italie, le Canada, l\'Inde et plus.',
     aboutTitle: 'À propos de nous',
     aboutDescription: 'Présentation du site Bing Wallpaper, fournissant des téléchargements de fonds d\'écran HD quotidiens Microsoft Bing, supportant la navigation et le téléchargement multi-régions et multi-résolutions. Toutes les images de ce site proviennent de la recherche Bing, uniquement à des fins d\'apprentissage et d\'usage personnel.',
+    amazingTitle: 'Globe | Bing Wallpaper du monde entier',
+    amazingDescription: 'Explorez des fonds d\'écran Bing HD sur un globe 3D interactif, chaque lieu étant marqué à sa position réelle sur Terre.',
     detailTitle: 'Détails du fond d\'écran',
     detailDescription: 'Page de détail Bing Wallpaper, voir les fonds d\'écran HD et supporter les téléchargements en plusieurs résolutions.',
     regionSeoTitle: '{name} Bing Wallpaper - Télécharger fond d\'écran HD quotidien {name}',
@@ -156,5 +159,17 @@ export default {
     htmlP: 'Site de téléchargement Bing Wallpaper, fournissant des fonds d\'écran HD quotidiens Microsoft Bing, supportant 9 régions dont la Chine, les États-Unis, le Japon, l\'Allemagne, le Royaume-Uni, la France et plus. Supporte 4K, 1920x1080 et d\'autres résolutions, avec téléchargement groupé en un clic de tous les fonds d\'écran annuels.',
     twitterTitle: 'Bing Wallpaper | Fonds d\'écran HD quotidiens',
     twitterDesc: 'Téléchargement de fonds d\'écran HD quotidiens Microsoft Bing, supportant multi-régions et multi-résolutions.'
+  },
+  amazing: {
+    title: 'Globe',
+    subtitle: 'Bing Wallpaper · Le monde',
+    back: 'Retour à l\'accueil',
+    hint: 'Glisser pour tourner · Molette pour zoomer · Cliquer sur un point pour voir les fonds d\'écran',
+    loading: 'Chargement des fonds d\'écran…',
+    loadError: 'Échec du chargement des données, veuillez réessayer',
+    globeError: 'Échec du chargement du globe 3D, affichage de la galerie uniquement',
+    galleryTitle: 'Fonds d\'écran à la une',
+    unitWallpapers: 'fonds d\'écran',
+    refresh: 'Nouveau lot'
   }
 }

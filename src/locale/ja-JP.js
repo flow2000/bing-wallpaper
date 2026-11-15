@@ -4,6 +4,7 @@ export default {
     home: 'ホーム',
     about: 'について',
     blog: 'ブログ',
+    amazing: '星空地球',
     refresh: 'ページ更新',
     loading: '読み込み中...',
     year: '年',
@@ -133,6 +134,8 @@ export default {
     regionDescription: '各地域のBingデイリーHD壁紙を閲覧・ダウンロード。中国、アメリカ、日本、ドイツ、イギリス、フランス、イタリア、カナダ、インドなどに対応。',
     aboutTitle: 'について',
     aboutDescription: 'Bing壁紙サイトの紹介。Microsoft BingのデイリーHD壁紙ダウンロードを提供し、多地域・多解像度の閲覧とダウンロードに対応。当サイトの画像はすべてBing検索からのものです。学習および個人使用のみに限定されています。',
+    amazingTitle: '星空地球 | Bing壁紙 世界のイメージ',
+    amazingDescription: 'インタラクティブな3D地球儀で世界中のBing HD壁紙を探索。各地点が地球上の実際の位置にマークされています。',
     detailTitle: '壁紙詳細',
     detailDescription: 'Bing壁紙の詳細ページ。HD壁紙を閲覧し、複数の解像度でのダウンロードに対応。',
     regionSeoTitle: '{name} Bing壁紙 - {name}デイリーHD壁紙ダウンロード',
@@ -156,5 +159,17 @@ export default {
     htmlP: 'Bing壁紙ダウンロードサイト。Microsoft BingのデイリーHD壁紙を提供し、中国、アメリカ、日本、ドイツ、イギリス、フランスなど9つの地域のHD壁紙の閲覧とダウンロードに対応。4K、1920x1080などの解像度に対応し、年間壁紙の一括ダウンロードが可能です。',
     twitterTitle: 'Bing壁紙 | デイリーHD壁紙',
     twitterDesc: 'Microsoft BingのデイリーHD壁紙ダウンロード。多地域・多解像度に対応。'
+  },
+  amazing: {
+    title: '星空地球',
+    subtitle: 'Bing壁紙 · 世界のイメージ',
+    back: 'ホームに戻る',
+    hint: 'ドラッグで回転 · スクロールでズーム · 光点をクリックして壁紙を表示',
+    loading: '世界中の壁紙を読み込み中…',
+    loadError: 'データの読み込みに失敗しました。再試行してください',
+    globeError: '3D地球儀の読み込みに失敗しました。画像リストのみ表示します',
+    galleryTitle: 'おすすめ壁紙',
+    unitWallpapers: '枚の壁紙',
+    refresh: '別の壁紙'
   }
 }

@@ -4,6 +4,7 @@ export default {
     home: '首页',
     about: '关于',
     blog: '博客',
+    amazing: '星空地球',
     refresh: '刷新页面',
     loading: '加载中...',
     year: '年',
@@ -133,6 +134,8 @@ export default {
     regionDescription: '各地区必应每日高清壁纸下载，支持中国、美国、日本、德国、英国、法国、意大利、加拿大、印度等地区。',
     aboutTitle: '关于我们',
     aboutDescription: '必应壁纸站点介绍，提供微软必应每日高清壁纸下载，支持多地区、多分辨率浏览与下载。本站所有图片均来自必应搜索，仅供学习和个人使用。',
+    amazingTitle: '星空地球 | 必应壁纸全球影像',
+    amazingDescription: '在 3D 旋转地球上浏览全球必应高清壁纸，地点与地球位置一一对应，探索世界各地的每日影像。',
     detailTitle: '壁纸详情',
     detailDescription: '必应壁纸详情页，查看高清壁纸并支持多种分辨率下载。',
     regionSeoTitle: '{name}必应壁纸 - {name}地区每日高清壁纸下载',
@@ -156,5 +159,17 @@ export default {
     htmlP: '必应壁纸(Bing Wallpaper)下载站，提供微软必应每日高清壁纸，支持中国、美国、日本、德国、英国、法国等9个国家地区的高清壁纸浏览与下载，支持4K、1920×1080等多种分辨率，可一键批量下载全年壁纸。',
     twitterTitle: '必应壁纸 | 每天都有不一样的心情',
     twitterDesc: '微软必应每日高清壁纸下载，支持多地区、多分辨率。'
+  },
+  amazing: {
+    title: '星空地球',
+    subtitle: '必应壁纸 · 全球影像',
+    back: '返回首页',
+    hint: '拖动旋转 · 滚轮缩放 · 点击光点查看壁纸',
+    loading: '正在加载全球壁纸…',
+    loadError: '数据加载失败，请重试',
+    globeError: '3D 地球加载失败，仅展示图片列表',
+    galleryTitle: '壁纸精选',
+    unitWallpapers: '张壁纸',
+    refresh: '换一批'
   }
 }

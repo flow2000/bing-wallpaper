@@ -4,6 +4,7 @@ export default {
     home: 'Startseite',
     about: 'Über uns',
     blog: 'Blog',
+    amazing: 'Globus',
     refresh: 'Seite aktualisieren',
     loading: 'Laden...',
     year: '',
@@ -133,6 +134,8 @@ export default {
     regionDescription: 'Durchsuchen und laden Sie regionale Bing-tägliche HD-Wallpaper. Unterstützt China, USA, Japan, Deutschland, Großbritannien, Frankreich, Italien, Kanada, Indien und mehr.',
     aboutTitle: 'Über uns',
     aboutDescription: 'Bing Wallpaper Website-Vorstellung. Bietet Microsoft Bing tägliche HD-Wallpaper-Downloads, unterstützt Multi-Region- und Multi-Auflösungs-Browsing und -Download. Alle Bilder stammen von der Bing-Suche, nur für Lern- und Privatzwecke.',
+    amazingTitle: 'Globus | Bing Wallpaper aus aller Welt',
+    amazingDescription: 'Entdecke Bing HD-Wallpaper auf einem interaktiven 3D-Globus, mit jedem Ort an seiner realen Position auf der Erde markiert.',
     detailTitle: 'Wallpaper-Details',
     detailDescription: 'Bing Wallpaper Detailseite. HD-Wallpaper ansehen und Downloads in mehreren Auflösungen unterstützen.',
     regionSeoTitle: '{name} Bing Wallpaper - {name} tägliche HD-Wallpaper-Download',
@@ -156,5 +159,17 @@ export default {
     htmlP: 'Bing Wallpaper Download-Seite. Bietet Microsoft Bing tägliche HD-Wallpaper, unterstützt 9 Regionen: China, USA, Japan, Deutschland, Großbritannien, Frankreich und mehr. Unterstützt 4K, 1920x1080 und weitere Auflösungen, mit Ein-Klick-Massen-Download aller Jahreswallpaper.',
     twitterTitle: 'Bing Wallpaper | Tägliche HD-Wallpaper',
     twitterDesc: 'Microsoft Bing tägliche HD-Wallpaper-Download, unterstützt Multi-Region und Multi-Auflösung.'
+  },
+  amazing: {
+    title: 'Globus',
+    subtitle: 'Bing Wallpaper · Weltweit',
+    back: 'Zur Startseite',
+    hint: 'Ziehen zum Drehen · Scrollen zum Zoomen · Punkt anklicken für Wallpaper',
+    loading: 'Wallpaper werden geladen…',
+    loadError: 'Daten konnten nicht geladen werden, bitte erneut versuchen',
+    globeError: '3D-Globus konnte nicht geladen werden, nur Galerie wird angezeigt',
+    galleryTitle: 'Ausgewählte Wallpaper',
+    unitWallpapers: 'Wallpaper',
+    refresh: 'Neue Auswahl'
   }
 }

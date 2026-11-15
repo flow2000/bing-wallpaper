@@ -35,6 +35,11 @@
                 <span slot="title">{{ $t('common.blog') }}</span>
               </a>
             </el-menu-item>
+            
+            <el-menu-item index="/amazing.html">
+              <i class="el-icon-earth" aria-hidden="true"></i>
+              <span slot="title">{{ $t('common.amazing') }}</span>
+            </el-menu-item>
           </el-menu>
         </nav>
         
@@ -97,6 +102,10 @@
                   <i class="iconfont icon-bokeyuan" aria-hidden="true"></i>
                   {{ $t('common.blog') }}
                 </a>
+              </el-dropdown-item>
+              <el-dropdown-item command="/amazing.html">
+                <i class="el-icon-earth" aria-hidden="true"></i>
+                {{ $t('common.amazing') }}
               </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
@@ -364,6 +373,17 @@ html, body {
 .external-link {
   color: inherit;
   text-decoration: none;
+}
+
+/* 对齐星空地球菜单图标（Element UI 图标与 iconfont 图标统一） */
+.nav-menu .el-menu-item .el-icon-earth {
+  display: inline;
+  font-size: 14px;
+  width: auto;
+  margin-right: 0;
+  text-align: left;
+  line-height: 60px;
+  vertical-align: middle;
 }
 
 /* Header right section */

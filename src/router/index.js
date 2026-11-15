@@ -4,6 +4,7 @@ import index from '@/views/index'
 import wallpaper from '@/views/wallpaper/index'
 import detail from '@/views/wallpaper/detail'
 import about from '@/views/about/index'
+import amazing from '@/views/amazing/index'
 import { updateSEO, setSiteJsonLd, removeJsonLd } from '@/utils/seo'
 import i18n from '@/locale'
 
@@ -55,6 +56,15 @@ const router = new Router({
       titleKey: 'seo.detailTitle',
       descKey: 'seo.detailDescription'
     }
+  }, {
+    path: '/amazing.html',
+    alias: '/amazing',
+    name: 'amazing',
+    component: amazing,
+    meta: {
+      titleKey: 'seo.amazingTitle',
+      descKey: 'seo.amazingDescription'
+    }
   }]
 })
 
@@ -65,7 +75,7 @@ export function applyRouteSEO(to) {
 
   const meta = to.meta || {}
 
-  if (to.name === 'wallpaper' || to.name === 'about' || to.name === 'blog') {
+  if (to.name === 'wallpaper' || to.name === 'about' || to.name === 'blog' || to.name === 'amazing') {
     updateSEO({
       title: i18n.t(meta.titleKey),
       description: i18n.t(meta.descKey),

@@ -4,6 +4,7 @@ export default {
     home: 'Home',
     about: 'Info',
     blog: 'Blog',
+    amazing: 'Globo',
     refresh: 'Aggiorna pagina',
     loading: 'Caricamento...',
     year: '',
@@ -133,6 +134,8 @@ export default {
     regionDescription: 'Sfoglia e scarica sfondi Bing HD giornalieri regionali, supportando Cina, USA, Giappone, Germania, Regno Unito, Francia, Italia, Canada, India e altro.',
     aboutTitle: 'Su di noi',
     aboutDescription: 'Presentazione del sito Bing Wallpaper, che fornisce download di sfondi HD giornalieri Microsoft Bing, supportando navigazione e download multi-regione e multi-risoluzione. Tutte le immagini di questo sito provengono da Bing Search, solo per uso didattico e personale.',
+    amazingTitle: 'Globo | Bing Wallpaper dal mondo',
+    amazingDescription: 'Esplora sfondi Bing HD su un globo 3D interattivo, con ogni luogo segnato nella sua posizione reale sulla Terra.',
     detailTitle: 'Dettagli sfondo',
     detailDescription: 'Pagina dettagli Bing Wallpaper, visualizza sfondi HD e supporta download in più risoluzioni.',
     regionSeoTitle: '{name} Bing Wallpaper - Download sfondo HD giornaliero {name}',
@@ -156,5 +159,17 @@ export default {
     htmlP: 'Sito di download Bing Wallpaper, che fornisce sfondi HD giornalieri Microsoft Bing, supportando 9 regioni tra cui Cina, USA, Giappone, Germania, Regno Unito, Francia e altro. Supporta 4K, 1920x1080 e altre risoluzioni, con download batch con un clic di tutti gli sfondi annuali.',
     twitterTitle: 'Bing Wallpaper | Sfondi HD giornalieri',
     twitterDesc: 'Download sfondi HD giornalieri Microsoft Bing, supportando multi-regione e multi-risoluzione.'
+  },
+  amazing: {
+    title: 'Globo',
+    subtitle: 'Bing Wallpaper · Dal mondo',
+    back: 'Torna alla home',
+    hint: 'Trascina per ruotare · Scorri per zoomare · Clicca un punto per gli sfondi',
+    loading: 'Caricamento sfondi…',
+    loadError: 'Caricamento dati non riuscito, riprova',
+    globeError: 'Caricamento del globo 3D non riuscito, mostro solo la galleria',
+    galleryTitle: 'Sfondi in evidenza',
+    unitWallpapers: 'sfondi',
+    refresh: 'Nuovo lotto'
   }
 }

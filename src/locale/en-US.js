@@ -4,6 +4,7 @@ export default {
     home: 'Home',
     about: 'About',
     blog: 'Blog',
+    amazing: 'Amazing Globe',
     refresh: 'Refresh Page',
     loading: 'Loading...',
     year: '',
@@ -133,6 +134,8 @@ export default {
     regionDescription: 'Browse and download regional Bing daily HD wallpapers, supporting China, USA, Japan, Germany, UK, France, Italy, Canada, India and more.',
     aboutTitle: 'About Us',
     aboutDescription: 'Bing Wallpaper site introduction, providing Microsoft Bing daily HD wallpaper downloads, supporting multi-region and multi-resolution browsing and downloading. All images on this site are from Bing Search, for learning and personal use only.',
+    amazingTitle: 'Amazing Globe | Bing Wallpapers Around the World',
+    amazingDescription: 'Explore Bing HD wallpapers on an interactive 3D globe, with each location marked at its real position on Earth.',
     detailTitle: 'Wallpaper Details',
     detailDescription: 'Bing Wallpaper detail page, view HD wallpapers and support multiple resolution downloads.',
     regionSeoTitle: '{name} Bing Wallpaper - {name} Daily HD Wallpaper Download',
@@ -156,5 +159,17 @@ export default {
     htmlP: 'Bing Wallpaper download site, providing Microsoft Bing daily HD wallpapers, supporting 9 regions including China, USA, Japan, Germany, UK, France and more. Supports 4K, 1920x1080 and other resolutions, with one-click batch download of all yearly wallpapers.',
     twitterTitle: 'Bing Wallpaper | Daily HD Wallpapers',
     twitterDesc: 'Microsoft Bing daily HD wallpaper download, supporting multi-region and multi-resolution.'
+  },
+  amazing: {
+    title: 'Amazing Globe',
+    subtitle: 'Bing Wallpapers · Around the World',
+    back: 'Back to Home',
+    hint: 'Drag to rotate · Scroll to zoom · Click a dot for wallpapers',
+    loading: 'Loading wallpapers…',
+    loadError: 'Failed to load data, please retry',
+    globeError: '3D globe failed to load, showing gallery only',
+    galleryTitle: 'Featured Wallpapers',
+    unitWallpapers: 'wallpapers',
+    refresh: 'New batch'
   }
 }
