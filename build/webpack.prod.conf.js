@@ -115,7 +115,8 @@ const webpackConfig = merge(baseWebpackConfig, {
       {
         from: path.resolve(__dirname, '../static'),
         to: config.build.assetsSubDirectory,
-        ignore: ['.*']
+        // sitemap.xml 已在下面单独复制到站点根目录，这里跳过以免产生 3MB 重复文件
+        ignore: ['.*', 'sitemap.xml']
       },
       // 将 SEO 必需的文件复制到站点根目录
       {
