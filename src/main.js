@@ -13,6 +13,7 @@ import Empty from 'element-ui/lib/empty';
 import Form from 'element-ui/lib/form';
 import FormItem from 'element-ui/lib/form-item';
 import Image from 'element-ui/lib/image';
+import Loading from 'element-ui/lib/loading';
 import Main from 'element-ui/lib/main';
 import Menu from 'element-ui/lib/menu';
 import MenuItem from 'element-ui/lib/menu-item';
@@ -61,6 +62,8 @@ const elementComponents = [
 ]
 
 elementComponents.forEach(component => Vue.use(component))
+Vue.use(Loading.directive);
+Vue.prototype.$loading = Loading.service;
 Vue.prototype.$message = Message;
 
 Vue.prototype.$axios = axios
