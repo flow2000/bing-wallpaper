@@ -222,7 +222,7 @@ export default {
 
           // 动态加载 busuanzi 脚本
           const script = document.createElement('script');
-          script.src = '//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+          script.src = 'https://busuanzi.aqcoder.cn/busuanzi.pure.mini.js';
           script.async = true;
           document.body.appendChild(script);
 
