@@ -70,6 +70,10 @@
           </el-row>
         </div>
         <div id="tcomment"></div>
+        <div class="comment-error" v-if="commentError">
+          <i class="el-icon-warning-outline"></i>
+          <span>{{ $t('about.commentError') }}</span>
+        </div>
       </article>
     </el-main>
 </div>
@@ -86,15 +90,49 @@
 
   export default {
     name: 'about',
-    mounted(){
-      if (typeof twikoo !== 'undefined') {
-        twikoo.init({
-          envId: 'https://twikoo.bimg.cc/',
-          el: '#tcomment',
-        })
+    data() {
+      return {
+        commentError: false
       }
     },
+    beforeDestroy() {
+      if (this._twikooTimer) {
+        clearTimeout(this._twikooTimer)
+        this._twikooTimer = null
+      }
+    },
+    mounted(){
+      this.initTwikoo()
+    },
     methods: {
+      // Twikoo 脚本为 async 加载：轮询等待就绪，主源失败时由 index.html 回退到备用源
+      initTwikoo(attempt = 0) {
+        if (typeof window.twikoo !== 'undefined') {
+          if (this._twikooInited) return
+          this._twikooInited = true
+          this.commentError = false
+          try {
+            const result = window.twikoo.init({
+              envId: 'https://twikoo.bimg.cc/',
+              el: '#tcomment',
+            })
+            if (result && typeof result.catch === 'function') {
+              result.catch(() => {
+                this.commentError = true
+              })
+            }
+          } catch (e) {
+            this.commentError = true
+          }
+          return
+        }
+        if (window.__twikooLoadFailed || attempt >= 50) {
+          this.commentError = true
+          return
+        }
+        this._twikooTimer = setTimeout(() => this.initTwikoo(attempt + 1), 300)
+      },
+
       renderAboutText(key) {
         let text = this.$t(key)
         text = text.replace(/\{strong\}(.+?)\{\/strong\}/g, '<strong>$1</strong>')
@@ -233,6 +271,16 @@
 
     #tcomment {
       margin-top: 16px;
+    }
+
+    .comment-error {
+      margin-top: 16px;
+      padding: 14px 18px;
+      border-radius: 8px;
+      background: #fdf6ec;
+      color: #b88230;
+      font-size: 14px;
+      line-height: 1.6;
     }
   }
 

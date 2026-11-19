@@ -125,8 +125,8 @@
           <i class="el-icon-picture" aria-hidden="true"></i>
           <span>{{ $t('common.copyright') }}</span>
         </span>
-        <span class="divider" aria-hidden="true">|</span>
-        <span class="footer-item">
+        <span class="divider" aria-hidden="true" v-if="visitorCountVisible">|</span>
+        <span class="footer-item" v-if="visitorCountVisible">
           <i class="el-icon-user" aria-hidden="true"></i>
           <span v-html="$t('common.visitorCount', { count: visitorCountHtml })"></span>
         </span>
@@ -151,13 +151,19 @@
 import { setLocale, getLocale } from '@/locale'
 import { applyRouteSEO } from '@/router'
 
+const BUSUANZI_SRC = 'https://busuanzi.aqcoder.cn/busuanzi.pure.mini.js'
+const VISITOR_CACHE_KEY = 'bimg_busuanzi_uv'
+// 模块级缓存：SPA 内组件重新挂载时 sessionStorage 不可用也能复用已取到的值
+let cachedVisitorCount = ''
+
 export default {
   name: 'App',
   data() {
     return {
       activeIndex: '/',
       currentYear: new Date().getFullYear(),
-      visitorCount: '---'
+      visitorCount: '---',
+      visitorCountVisible: true
     };
   },
   computed: {
@@ -184,6 +190,16 @@ export default {
   },
   mounted() {
     this.initVisitorCount();
+  },
+  beforeDestroy() {
+    if (this._busuanziTimer) {
+      clearTimeout(this._busuanziTimer);
+      this._busuanziTimer = null;
+    }
+    if (this._busuanziObserver) {
+      this._busuanziObserver.disconnect();
+      this._busuanziObserver = null;
+    }
   },
 
   watch: {
@@ -214,35 +230,77 @@ export default {
     },
     
     initVisitorCount() {
+      const cached = this.readVisitorCache();
+      if (cached) {
+        // 已取到过计数：重新挂载时先展示缓存值，避免脚本因同 URL 短路而停在占位符
+        this.visitorCount = cached;
+      }
       try {
         this.$nextTick(() => {
           // 确保计数器元素已渲染到 DOM 中
           const el = document.getElementById('busuanzi_value_site_uv');
           if (!el) return;
 
-          // 动态加载 busuanzi 脚本
-          const script = document.createElement('script');
-          script.src = 'https://busuanzi.aqcoder.cn/busuanzi.pure.mini.js';
-          script.async = true;
-          document.body.appendChild(script);
+          // 仅在没有任何可用数值时隐藏计数，避免脚本/接口失败后长期显示占位符
+          const hideIfNoValue = () => {
+            if (this.visitorCount === '---') {
+              this.visitorCountVisible = false;
+            }
+          };
 
-          // 监听 busuanzi 更新计数，同步到 Vue 数据中
+          // 动态加载 busuanzi 脚本（已有同源脚本时不再重复插入）
+          if (!document.querySelector('script[src="' + BUSUANZI_SRC + '"]')) {
+            const script = document.createElement('script');
+            script.src = BUSUANZI_SRC;
+            script.async = true;
+            script.onerror = hideIfNoValue;
+            document.body.appendChild(script);
+          }
+
+          // 监听 busuanzi 更新计数，同步到 Vue 数据中并缓存
           const observer = new MutationObserver(() => {
             const text = el.textContent.trim();
             if (text && text !== '---') {
               this.visitorCount = text;
+              this.saveVisitorCache(text);
               observer.disconnect();
             }
           });
           observer.observe(el, { childList: true, characterData: true, subtree: true });
+          this._busuanziObserver = observer;
 
-          // 5秒后如果还没更新，停止监听（避免脚本加载失败时长时间监听）
-          setTimeout(() => {
+          // 5秒后如果还没更新，停止监听并隐藏计数（脚本或接口不可用时不留占位符）
+          this._busuanziTimer = setTimeout(() => {
             observer.disconnect();
+            this._busuanziObserver = null;
+            hideIfNoValue();
           }, 5000);
         });
       } catch (error) {
-        // visitor count loading error
+        this.visitorCountVisible = false;
+      }
+    },
+
+    readVisitorCache() {
+      if (cachedVisitorCount) return cachedVisitorCount;
+      try {
+        const value = sessionStorage.getItem(VISITOR_CACHE_KEY);
+        if (value && value !== '---') {
+          cachedVisitorCount = value;
+          return value;
+        }
+      } catch (e) {
+        // sessionStorage 不可用时仅依赖模块级缓存
+      }
+      return '';
+    },
+
+    saveVisitorCache(value) {
+      cachedVisitorCount = value;
+      try {
+        sessionStorage.setItem(VISITOR_CACHE_KEY, value);
+      } catch (e) {
+        // 忽略存储失败，模块级缓存仍可用
       }
     }
   }

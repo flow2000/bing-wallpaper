@@ -122,7 +122,8 @@ export default {
     postPara2: 'Als ich Bing-Wallpaper entdeckte, sah ich viele großartige Wallpaper auf Bing und wollte eine API für meinen Blog-Hintergrund. Später lernte ich, eine eigene API zu bauen. Dabei lernte ich viel: die pymongo-Bibliothek, FastAPI-Setup, modulares Python-Design; Frontend: Navigationslayout, Icon-Bibliothek-Integration, vue-router, axios-Request-Wrapping, Paginierungsladen.',
     postPara3: 'Es gab auch viele Herausforderungen. Ich suchte ausgiebig und fand, dass die Bing-Wallpaper-API Regionen unterstützt, aber die China-Region wurde zwangsumgeleitet. Bei Vercel dauerte es lange, herauszufinden, wie man Frontend und Backend zusammen hostet. FastAPI hatte viele kleine Fallstricke. Es dauerte lange, bis ich durch Recherche und Studium anderer Designs das modulare Python-Design abschließen konnte. Ich las {link}Element UI{/link} unzählige Male, stieß auf viele Bugs, verstand vue-router anhand der offiziellen Beispiele, und die Paginierung hatte immer noch einen ungelösten Bug — PS: Dieser Bug kann nicht entfernt werden, das Projekt läuft auf ihm.',
     postPara4: '{strong}AI{/strong} ist absolut erstaunlich!!!',
-    postPara5: 'Jetzt hat bing-wallpaper das {link}Twikoo{/link} Kommentarsystem integriert. Hinterlassen Sie gerne Ihre Gedanken!'
+    postPara5: 'Jetzt hat bing-wallpaper das {link}Twikoo{/link} Kommentarsystem integriert. Hinterlassen Sie gerne Ihre Gedanken!',
+    commentError: 'Kommentare konnten nicht geladen werden. Bitte laden Sie die Seite neu.'
   },
   seo: {
     siteName: 'Bing Wallpaper',

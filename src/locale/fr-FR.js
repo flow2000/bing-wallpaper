@@ -122,7 +122,8 @@ export default {
     postPara2: 'Quand j\'ai découvert les fonds d\'écran Bing, j\'ai vu beaucoup de superbes fonds d\'écran sur Bing et je voulais une API pour l\'arrière-plan de mon blog. Plus tard, j\'ai appris à construire ma propre API. En cours de route, j\'ai beaucoup appris : la bibliothèque pymongo, la configuration de FastAPI, la conception modulaire Python ; frontend : mise en page de navigation, intégration de bibliothèque d\'icônes, utilisation de vue-router, encapsulation de requêtes axios, chargement de pagination.',
     postPara3: 'Il y a eu de nombreux défis aussi. J\'ai fait beaucoup de recherches pour découvrir que l\'API de fonds d\'écran Bing supportait les régions, mais la région Chine était redirigée de force. Vercel a pris longtemps à comprendre pour gérer à la fois le frontend et le backend ensemble. FastAPI avait de nombreux pièges. Il a fallu beaucoup de temps de recherche et d\'étude des conceptions d\'autres pour terminer la conception modulaire Python. J\'ai lu {link}Element UI{/link} d\'innombrables fois, rencontré de nombreux bugs, compris vue-router en suivant les exemples officiels, et la pagination avait encore un bug non résolu — PS : ce bug ne peut pas être retiré, le projet fonctionne dessus.',
     postPara4: '{strong}AI{/strong} est absolument incroyable !!!',
-    postPara5: 'Maintenant, bing-wallpaper a intégré le système de commentaires {link}Twikoo{/link}. N\'hésitez pas à laisser vos pensées !'
+    postPara5: 'Maintenant, bing-wallpaper a intégré le système de commentaires {link}Twikoo{/link}. N\'hésitez pas à laisser vos pensées !',
+    commentError: 'Impossible de charger les commentaires. Veuillez actualiser la page.'
   },
   seo: {
     siteName: 'Bing Wallpaper',

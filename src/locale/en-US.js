@@ -122,7 +122,8 @@ export default {
     postPara2: 'When I first discovered Bing wallpapers, I saw many great wallpapers on Bing and wanted an API for my blog background. Later I learned to build my own API. Along the way, I learned a lot: the pymongo library, FastAPI setup, Python modular design; frontend: navigation layout, icon library integration, vue-router usage, axios request wrapping, pagination loading.',
     postPara3: 'There were many challenges too. I searched extensively to find that Bing wallpaper API supports regions, but the China region was force-redirected. Vercel took ages to figure out how to handle both frontend and backend together. FastAPI had many small pitfalls. It took a long time researching and studying others\' designs to complete the Python modular design. I read through {link}Element UI{/link} countless times, encountered many bugs, understood vue-router by following the official examples, and the pagination still had an unsolved bug — PS: that bug cannot be removed, the project runs on it.',
     postPara4: '{strong}AI{/strong} is absolutely amazing!!!',
-    postPara5: 'Now, bing-wallpaper has integrated the {link}Twikoo{/link} comment system. Feel free to leave your thoughts!'
+    postPara5: 'Now, bing-wallpaper has integrated the {link}Twikoo{/link} comment system. Feel free to leave your thoughts!',
+    commentError: 'Comments failed to load. Please refresh and try again.'
   },
   seo: {
     siteName: 'Bing Wallpaper',

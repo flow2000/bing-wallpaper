@@ -122,7 +122,8 @@ export default {
     postPara2: '刚开始接触必应壁纸时只是在必应上看到了许多优秀的壁纸，想要个api当作博客的背景图片使用，后面自己也学着搭建了一个api。一路上磕磕绊绊，后端api学到了许多知识，比如Python第三方库pymongo的简单使用，FastAPI的搭建，Python的模块化设计；前端学到了导航栏的布局，三方图标库的导入，vue-router的使用，axios封装的请求库，分页器的加载。',
     postPara3: '期间也遇到了许多困难，后端翻了很多资料才知道必应壁纸api可以分地区，但是国区还被强制重定向了，vercel搞了好久也解决不了后端和前端同时放在一起的请求方式，FastAPI也走了许多小坑，查了好久的资料加上模仿大佬的设计才完成Python的模块化设计。前端{link}ElementUI{/link}翻了N遍，bug还出现了一堆，vue-router学着官网的的例子才懂，分页器还有一个bug没解决，PS：这个bug还不能去掉，项目依靠这个bug运行。',
     postPara4: '{strong}AI{/strong}真是太好用了！！！',
-    postPara5: '现在，bing-wallpaper开通{link}Twikoo{/link}评论系统，大家有问题可以在此留言'
+    postPara5: '现在，bing-wallpaper开通{link}Twikoo{/link}评论系统，大家有问题可以在此留言',
+    commentError: '评论加载失败，请稍后刷新重试'
   },
   seo: {
     siteName: '必应壁纸',

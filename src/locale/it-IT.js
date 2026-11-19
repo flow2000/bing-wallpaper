@@ -122,7 +122,8 @@ export default {
     postPara2: 'Quando ho scoperto i sfondi Bing, ho visto molti bei sfondi su Bing e volevo un\'API per lo sfondo del mio blog. Più tardi ho imparato a costruire la mia API. Lungo il percorso ho imparato molto: la libreria pymongo, la configurazione di FastAPI, il design modulare di Python; frontend: layout di navigazione, integrazione di librerie di icone, uso di vue-router, wrapping di richieste axios, caricamento di paginazione.',
     postPara3: 'Ci sono state anche molte sfide. Ho cercato a fondo per scoprire che l\'API degli sfondi Bing supporta le regioni, ma la regione Cina veniva reindirizzata forzatamente. Con Vercel ci è voluto molto tempo per capire come gestire insieme frontend e backend. FastAPI aveva molte insidie. Ci è voluto molto tempo di ricerca e studio dei design altrui per completare il design modulare di Python. Ho letto {link}Element UI{/link} innumerevoli volte, ho incontrato molti bug, ho capito vue-router seguendo gli esempi ufficiali, e la paginazione aveva ancora un bug non risolto — PS: quel bug non può essere rimosso, il progetto funziona su di esso.',
     postPara4: '{strong}AI{/strong} è assolutamente incredibile!!!',
-    postPara5: 'Ora, bing-wallpaper ha integrato il sistema di commenti {link}Twikoo{/link}. Sentitevi liberi di lasciare i vostri pensieri!'
+    postPara5: 'Ora, bing-wallpaper ha integrato il sistema di commenti {link}Twikoo{/link}. Sentitevi liberi di lasciare i vostri pensieri!',
+    commentError: 'Impossibile caricare i commenti. Aggiorna la pagina e riprova.'
   },
   seo: {
     siteName: 'Bing Wallpaper',
