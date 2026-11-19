@@ -38,7 +38,7 @@
       </div>
 
       <!-- 图片展示 -->
-      <div class="gallery-panel">
+      <div class="gallery-panel" ref="galleryPanel" @scroll="onGalleryScroll">
         <h2 class="gallery-title">
           <i class="el-icon-picture-outline"></i>
           {{ $t('amazing.galleryTitle') }}
@@ -76,6 +76,11 @@
           <i class="el-icon-warning-outline"></i>
           <span>{{ error || $t('amazing.loadError') }}</span>
         </div>
+
+        <div class="gallery-more" v-if="loadingMore">
+          <i class="el-icon-loading"></i>
+          <span>{{ $t('amazing.loading') }}</span>
+        </div>
       </div>
     </div>
   </div>
@@ -99,7 +104,10 @@ const COUNTRY_MKT = {
   IN: 'en-IN'
 }
 
-const PAGE_SIZE = 100
+// 每次滚动到底加载的条数，以及单次“换一批”窗口内最多渲染的总条数
+const BATCH_SIZE = 20
+const MAX_ITEMS = 100
+const BATCHES_PER_WINDOW = Math.ceil(MAX_ITEMS / BATCH_SIZE)
 
 const THREE_SRC = 'https://registry.npmmirror.com/three/0.128.0/files/build/three.min.js'
 const GLOBE_SRC = 'https://unpkg.com/globe.gl@2.27.3/dist/globe.gl.min.js'
@@ -120,7 +128,11 @@ export default {
       globe: null,
       refreshing: false,
       maxPage: 1,
-      market: ''
+      market: '',
+      nextPage: 2,
+      windowEnd: 1,
+      hasMore: false,
+      loadingMore: false
     }
   },
   mounted() {
@@ -172,12 +184,13 @@ export default {
     async init() {
       this.loading = true
       this.error = ''
+      this.hasMore = false
       try {
-        const dataPromise = this.fetchData()
+        const dataPromise = this.fetchBatch(1)
         const libPromise = this.loadGlobeLibs()
 
-        const data = await dataPromise
-        this.wallpapers = data
+        const first = await dataPromise
+        this.resetWindow(first, 1)
         this.buildPoints()
 
         try {
@@ -186,6 +199,7 @@ export default {
         } catch (e) {
           this.globeError = true
         }
+        this.$nextTick(() => this.fillViewport())
       } catch (e) {
         this.error = e.message || this.$t('amazing.loadError')
       } finally {
@@ -232,21 +246,82 @@ export default {
       return this.market
     },
 
-    async fetchData(page = 1) {
+    async fetchBatch(page = 1) {
       const mkt = await this.resolveMarket()
       try {
         const resp = await this.$axios.get('https://api.bimg.cc/all', {
-          params: { page, limit: PAGE_SIZE, order: 'desc', mkt }
+          params: { page, limit: BATCH_SIZE, order: 'desc', mkt }
         })
         if (resp.data && resp.data.code === 200) {
-          const total = resp.data.total || 0
-          this.maxPage = Math.max(1, Math.ceil(total / PAGE_SIZE))
-          return (resp.data.data || []).map(item => this.attachGeo(item, mkt))
+          return {
+            items: (resp.data.data || []).map(item => this.attachGeo(item, mkt)),
+            total: resp.data.total || 0
+          }
         }
-        return []
+        return { items: [], total: 0 }
       } catch (e) {
-        return []
+        return { items: [], total: 0 }
       }
+    },
+
+    // 重置当前窗口：换一批或首次加载时确定起始页与可继续加载的范围
+    resetWindow(result, startPage) {
+      this.wallpapers = result.items
+      this.maxPage = Math.max(1, Math.ceil(result.total / BATCH_SIZE))
+      this.nextPage = startPage + 1
+      this.windowEnd = Math.min(startPage + BATCHES_PER_WINDOW, this.maxPage + 1)
+      this.hasMore = this.wallpapers.length < MAX_ITEMS &&
+        this.nextPage < this.windowEnd &&
+        result.items.length === BATCH_SIZE
+    },
+
+    onGalleryScroll() {
+      const el = this.$refs.galleryPanel
+      if (!el) return
+      if (el.scrollTop + el.clientHeight >= el.scrollHeight - 120) {
+        this.loadMore()
+      }
+    },
+
+    async loadMore() {
+      if (this.loading || this.loadingMore || this.refreshing || !this.hasMore) return
+      this.loadingMore = true
+      const page = this.nextPage
+      try {
+        const result = await this.fetchBatch(page)
+        const existing = {}
+        this.wallpapers.forEach(w => {
+          existing[w.id + '-' + w.mkt] = true
+        })
+        // 翻页期间数据可能整体位移，去重避免同一张壁纸重复出现
+        const fresh = result.items.filter(w => !existing[w.id + '-' + w.mkt])
+        this.nextPage = page + 1
+        this.wallpapers = this.wallpapers.concat(fresh)
+        this.buildPoints()
+        this.syncGlobePoints()
+        this.hasMore = this.wallpapers.length < MAX_ITEMS &&
+          this.nextPage < this.windowEnd &&
+          fresh.length > 0 &&
+          result.items.length === BATCH_SIZE
+      } finally {
+        this.loadingMore = false
+      }
+    },
+
+    // 面板高度足以容纳首批内容时不会触发滚动事件，此时主动补足到可滚动为止
+    fillViewport() {
+      if (!this.hasMore || this.loadingMore) return
+      const el = this.$refs.galleryPanel
+      if (!el) return
+      if (el.scrollHeight <= el.clientHeight + 4) {
+        this.loadMore().then(() => this.$nextTick(() => this.fillViewport()))
+      }
+    },
+
+    syncGlobePoints() {
+      if (!this.globe) return
+      this.globe.pointsData(this.points)
+      this.globe.ringsData(this.points)
     },
 
     async changeBatch() {
@@ -254,9 +329,11 @@ export default {
       this.refreshing = true
       this.error = ''
       try {
-        const page = Math.floor(Math.random() * this.maxPage) + 1
-        const data = await this.fetchData(page)
-        this.wallpapers = data
+        // 在市场中随机选一个可容纳完整窗口的起始页，保证“换一批”同样是 100 条上限
+        const maxStart = Math.max(1, this.maxPage - BATCHES_PER_WINDOW + 1)
+        const startPage = Math.floor(Math.random() * maxStart) + 1
+        const result = await this.fetchBatch(startPage)
+        this.resetWindow(result, startPage)
         this.buildPoints()
         this.activeCardId = null
         this.hoverInfo = ''
@@ -267,8 +344,9 @@ export default {
           this.$nextTick(() => this.initGlobe())
         }
         this.$nextTick(() => {
-          const panel = this.$el.querySelector('.gallery-panel')
+          const panel = this.$refs.galleryPanel
           if (panel) panel.scrollTop = 0
+          this.fillViewport()
         })
       } catch (e) {
         this.error = e.message || this.$t('amazing.loadError')
@@ -784,6 +862,16 @@ export default {
   gap: 12px;
   padding: 60px 0;
   color: #7f96b5;
+}
+
+.gallery-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 18px 0 6px;
+  color: #7f96b5;
+  font-size: 13px;
 }
 
 .gallery-empty i {
