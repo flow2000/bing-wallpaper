@@ -86,6 +86,21 @@ import { geocode } from './geonames'
 
 const REGIONS = ['zh-CN', 'en-US', 'ja-JP', 'de-DE', 'fr-FR', 'it-IT', 'en-GB', 'en-CA', 'en-IN']
 
+// 访问者 IP 国家 -> 对应必应市场，未收录的国家回退到界面语言
+const COUNTRY_MKT = {
+  CN: 'zh-CN',
+  US: 'en-US',
+  JP: 'ja-JP',
+  DE: 'de-DE',
+  FR: 'fr-FR',
+  IT: 'it-IT',
+  GB: 'en-GB',
+  CA: 'en-CA',
+  IN: 'en-IN'
+}
+
+const PAGE_SIZE = 100
+
 const THREE_SRC = 'https://registry.npmmirror.com/three/0.128.0/files/build/three.min.js'
 const GLOBE_SRC = 'https://unpkg.com/globe.gl@2.27.3/dist/globe.gl.min.js'
 const GLOBE_IMG = 'https://registry.npmmirror.com/three-globe/latest/files/example/img/earth-blue-marble.jpg'
@@ -104,7 +119,8 @@ export default {
       activeCardId: null,
       globe: null,
       refreshing: false,
-      maxPage: 1
+      maxPage: 1,
+      market: ''
     }
   },
   mounted() {
@@ -199,26 +215,38 @@ export default {
       })
     },
 
-    async fetchData(page = 1) {
-      let minTotal = Infinity
-      const results = await Promise.all(REGIONS.map(async (mkt) => {
-        try {
-          const resp = await this.$axios.get('https://api.bimg.cc/all', {
-            params: { page, limit: 100, order: 'desc', mkt }
-          })
-          if (resp.data && resp.data.code === 200) {
-            minTotal = Math.min(minTotal, resp.data.total || 0)
-            return (resp.data.data || []).map(item => this.attachGeo(item, mkt))
-          }
-          return []
-        } catch (e) {
-          return []
-        }
-      }))
-      if (minTotal !== Infinity && minTotal > 0) {
-        this.maxPage = Math.max(1, Math.ceil(minTotal / 100))
+    // 通过 Cloudflare 边缘的 /cdn-cgi/trace 获取访问者 IP 所在国家；
+    // 非 Cloudflare 环境（如本地或其它托管）取不到国家时回退到界面语言
+    async resolveMarket() {
+      if (this.market) return this.market
+      let country = ''
+      try {
+        const resp = await this.$axios.get('/cdn-cgi/trace', { timeout: 3000 })
+        const match = /(?:^|\n)loc=([A-Z]{2})\b/.exec(String(resp.data))
+        if (match) country = match[1]
+      } catch (e) {
+        // 忽略，走语言回退
       }
-      return results.reduce((acc, arr) => acc.concat(arr), [])
+      const locale = this.$i18n.locale
+      this.market = COUNTRY_MKT[country] || (REGIONS.indexOf(locale) > -1 ? locale : 'en-US')
+      return this.market
+    },
+
+    async fetchData(page = 1) {
+      const mkt = await this.resolveMarket()
+      try {
+        const resp = await this.$axios.get('https://api.bimg.cc/all', {
+          params: { page, limit: PAGE_SIZE, order: 'desc', mkt }
+        })
+        if (resp.data && resp.data.code === 200) {
+          const total = resp.data.total || 0
+          this.maxPage = Math.max(1, Math.ceil(total / PAGE_SIZE))
+          return (resp.data.data || []).map(item => this.attachGeo(item, mkt))
+        }
+        return []
+      } catch (e) {
+        return []
+      }
     },
 
     async changeBatch() {
